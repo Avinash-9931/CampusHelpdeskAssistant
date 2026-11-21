@@ -4,8 +4,14 @@ Provides SVG icon generation, badges, status strips, source citation drawers,
 custom chat bubbles, skeletons, and empty state cards. No emoji icons used.
 """
 
+import html
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+
+
+def sanitize_text(text: str) -> str:
+    """Escapes HTML entities from user input or untrusted document content."""
+    return html.escape(str(text or ""))
 
 
 # ==============================================================================
@@ -227,30 +233,33 @@ def render_status_strip(doc_count: int, chunk_count: int, ai_mode: str, retrieva
 # ==============================================================================
 def render_citation_chip(filename: str, page: int, score: Optional[float] = None) -> str:
     """Renders a compact citation chip with metadata."""
+    safe_fn = sanitize_text(filename)
     score_str = f" · {score:.3f}" if score is not None else ""
     return (
         f'<span class="citation-chip">'
-        f'{render_icon("file-text", size=11, color="#2563EB")} {filename} (p. {page}{score_str})'
+        f'{render_icon("file-text", size=11, color="#2563EB")} {safe_fn} (p. {page}{score_str})'
         f'</span>'
     )
 
 
 def render_source_item(filename: str, page: int, snippet: str, score: Optional[float] = None) -> str:
     """Renders an individual collapsible source citation block."""
+    safe_fn = sanitize_text(filename)
+    safe_snippet = sanitize_text(snippet)
     score_badge = render_badge(f"Relevance: {score:.3f}", kind="accent") if score is not None else ""
     return f"""
     <div class="source-item-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <div style="display:flex; align-items:center; gap:8px;">
                 <span style="font-weight:700; color:#0B1F3A; font-family:'JetBrains Mono', monospace; font-size:12px;">
-                    {render_icon("file-text", size=13, color="#0B1F3A")} {filename}
+                    {render_icon("file-text", size=13, color="#0B1F3A")} {safe_fn}
                 </span>
                 <span class="badge badge-muted">Page {page}</span>
             </div>
             <div>{score_badge}</div>
         </div>
         <div style="font-size:12.5px; line-height:1.5; color:#475569; font-style:italic; border-left:2px solid #CBD5E1; padding-left:10px; margin-top:4px;">
-            "{snippet}"
+            "{safe_snippet}"
         </div>
     </div>
     """

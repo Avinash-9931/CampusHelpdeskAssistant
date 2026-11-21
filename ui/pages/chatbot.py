@@ -6,6 +6,8 @@ collapsible source citation drawers, mode badges, and empty states.
 """
 
 import time
+import html
+import time
 from datetime import datetime
 import streamlit as st
 from config import settings
@@ -114,7 +116,8 @@ def render_chatbot_page():
             timestamp = msg.get("timestamp", datetime.now().strftime("%I:%M %p"))
 
             if role == "user":
-                # User Message Bubble
+                # User Message Bubble (HTML escaped for XSS safety)
+                safe_user_content = html.escape(content)
                 st.markdown(f"""
                 <div class="chat-message-row user">
                     <div class="chat-bubble-user">
@@ -122,7 +125,7 @@ def render_chatbot_page():
                             <span>Student Inquiry</span>
                             <span>{timestamp}</span>
                         </div>
-                        <div style="font-size:14px; line-height:1.5;">{content}</div>
+                        <div style="font-size:14px; line-height:1.5;">{safe_user_content}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -189,6 +192,17 @@ def render_chatbot_page():
     active_query = pending_query or chat_input_val
 
     if active_query:
+        # Rapid repeated submission / double-click debounce guard
+        now_ts = time.time()
+        last_sent = st.session_state.get("_last_query_time", 0.0)
+        last_query_text = st.session_state.get("_last_query_text", "")
+        if active_query == last_query_text and (now_ts - last_sent) < 1.0:
+            # Suppress duplicate rapid trigger
+            st.stop()
+
+        st.session_state["_last_query_time"] = now_ts
+        st.session_state["_last_query_text"] = active_query
+
         # Check if Knowledge Base is completely empty
         retriever = st.session_state.retriever
         stats = retriever.get_stats()

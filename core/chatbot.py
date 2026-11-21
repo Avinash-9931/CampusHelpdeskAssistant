@@ -13,6 +13,8 @@ from config import settings
 from core.retriever import KnowledgeBase, RetrievedChunk
 from core.ai_engine import AIEngine
 from core.prompt_manager import PromptManager
+from core.response_guard import validate_and_guard_response
+from core.logger import logger
 
 
 # ==============================================================================
@@ -332,8 +334,17 @@ class ChatbotController:
                     user_prompt=final_prompt,
                     temperature=0.0
                 )
+                # Response guard: ensure no hallucinated citations remain
+                guarded_answer, removed_citations = validate_and_guard_response(
+                    generated_answer,
+                    retrieved_chunks
+                )
+                logger.info(
+                    f"Generated AI answer with {len(citations)} sources "
+                    f"(unverified citations removed: {len(removed_citations)})"
+                )
                 return ChatResult(
-                    answer=generated_answer,
+                    answer=guarded_answer,
                     sources=citations,
                     mode="gemini",
                     retrieval_method=active_method_label,

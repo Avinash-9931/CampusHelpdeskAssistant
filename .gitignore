@@ -23,6 +23,8 @@ data/processed/*
 # Operating system artifacts
 .DS_Store
 Thumbs.db
+# Logs
+logs/
 *.log
 .idea/
 .vscode/

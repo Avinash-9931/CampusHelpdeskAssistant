@@ -15,12 +15,35 @@ def prompt_mgr():
 
 
 def test_all_prompt_versions_exist(prompt_mgr):
-    """Verifies that v1, v2, v3, and final prompt templates are loaded."""
+    """Verifies that v1, v2, v3, and final prompt templates are loaded and have headers."""
     prompts = prompt_mgr.get_all_prompts()
-    assert "v1" in prompts and len(prompts["v1"]) > 10
-    assert "v2" in prompts and len(prompts["v2"]) > 10
-    assert "v3" in prompts and len(prompts["v3"]) > 10
-    assert "final" in prompts and len(prompts["final"]) > 50
+    for v in ["v1", "v2", "v3", "final"]:
+        assert v in prompts and len(prompts[v]) > 10
+        raw = prompts[v]
+        # Check header metadata
+        assert "version:" in raw
+        assert "purpose:" in raw
+        assert "known_weaknesses:" in raw
+
+
+def test_prompt_v3_refusal_template(prompt_mgr):
+    """Verifies that prompt_v3.md contains the exact required refusal template."""
+    v3_text = prompt_mgr.get_template("v3")
+    assert "I cannot find this information in the official uploaded university documents" in v3_text
+    assert "contact the relevant university department" in v3_text
+    assert "{context}" in v3_text
+    assert "{question}" in v3_text or "{query}" in v3_text
+
+
+def test_final_prompt_placeholders_and_few_shot(prompt_mgr):
+    """Verifies that final_prompt.md contains delimited placeholders and fictional few-shot examples."""
+    final_text = prompt_mgr.get_template("final")
+    assert "<context>" in final_text and "</context>" in final_text
+    assert "<user_query>" in final_text and "</user_query>" in final_text
+    assert "{context}" in final_text
+    assert "{question}" in final_text or "{query}" in final_text
+    assert "FEW-SHOT DEMONSTRATIONS" in final_text
+    assert "university_policy_demo.pdf" in final_text
 
 
 def test_final_prompt_critical_rules(prompt_mgr):

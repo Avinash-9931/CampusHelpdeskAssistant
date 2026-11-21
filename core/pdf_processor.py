@@ -7,68 +7,26 @@ import io
 import re
 import hashlib
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Callable
 import pypdf
 
 from config import settings
+from core.exceptions import (
+    PDFProcessingError,
+    InvalidFileTypeError,
+    EmptyFileError,
+    EmptyPDFError,
+    FileTooLargeError,
+    DuplicateFileError,
+    PasswordProtectedPDFError,
+    EncryptedPDFError,
+    CorruptedPDFError,
+    ScannedPDFError,
+)
+from core.logger import logger
 
-
-# ==============================================================================
-# Domain Exceptions
-# ==============================================================================
-class PDFProcessingError(Exception):
-    """Base exception for PDF processing errors."""
-    pass
-
-
-class InvalidFileTypeError(PDFProcessingError):
-    """Raised when uploaded file is not a valid PDF or fails magic-byte verification."""
-    pass
-
-
-class EmptyFileError(PDFProcessingError):
-    """Raised when uploaded file has 0 bytes."""
-    pass
-
-
-class EmptyPDFError(EmptyFileError):
-    """Raised when PDF document contains 0 pages."""
-    pass
-
-
-class FileTooLargeError(PDFProcessingError):
-    """Raised when file exceeds size limit."""
-    pass
-
-
-class DuplicateFileError(PDFProcessingError):
-    """Raised when file content hash matches an already processed file."""
-    pass
-
-
-class PasswordProtectedPDFError(PDFProcessingError):
-    """Raised when PDF is password protected or encrypted."""
-    pass
-
-
-class EncryptedPDFError(PasswordProtectedPDFError):
-    """Backward-compatible alias for PasswordProtectedPDFError."""
-    pass
-
-
-class CorruptedPDFError(PDFProcessingError):
-    """Raised when PDF structure is corrupt or unreadable."""
-    pass
-
-
-class CorruptPDFError(CorruptedPDFError):
-    """Backward-compatible alias for CorruptedPDFError."""
-    pass
-
-
-class ScannedPDFError(PDFProcessingError):
-    """Raised when PDF has no extractable text layer (likely scanned)."""
-    pass
+# Backward-compatible alias
+CorruptPDFError = CorruptedPDFError
 
 
 # ==============================================================================
@@ -217,7 +175,11 @@ def validate_upload(
     }
 
 
-def extract_pdf(file_bytes: bytes, filename: str = "document.pdf") -> List[PageData]:
+def extract_pdf(
+    file_bytes: bytes,
+    filename: str = "document.pdf",
+    progress_callback: Optional[Callable[[int, int], None]] = None
+) -> List[PageData]:
     """
     Extracts text per page from PDF bytes.
     Detects and raises distinct exceptions for:
@@ -229,6 +191,7 @@ def extract_pdf(file_bytes: bytes, filename: str = "document.pdf") -> List[PageD
     Args:
         file_bytes: Binary PDF content.
         filename: Name of document for error reporting.
+        progress_callback: Optional callback(current_page, total_pages) for progress reporting.
         
     Returns:
         List of PageData instances.
@@ -266,6 +229,12 @@ def extract_pdf(file_bytes: bytes, filename: str = "document.pdf") -> List[PageD
 
     for page_idx, page in enumerate(reader.pages):
         page_num = page_idx + 1
+        if progress_callback:
+            try:
+                progress_callback(page_num, total_pages)
+            except Exception:
+                pass
+
         try:
             raw_text = page.extract_text() or ""
         except Exception:
@@ -288,20 +257,22 @@ def extract_pdf(file_bytes: bytes, filename: str = "document.pdf") -> List[PageD
             f"This document appears to be a scanned image. Optical Character Recognition (OCR) is not currently enabled."
         )
 
+    logger.info(f"Successfully extracted {total_pages} pages ({total_extracted_chars} chars) from '{filename}'")
     return pages_data
 
 
 def process_document(
     file_bytes: bytes,
     filename: str,
-    existing_hashes: Optional[set] = None
+    existing_hashes: Optional[set] = None,
+    progress_callback: Optional[Callable[[int, int], None]] = None
 ) -> ProcessedDocument:
     """
     Orchestrates full PDF processing pipeline:
     Validates, extracts, and returns a ProcessedDocument.
     """
     validation = validate_upload(filename, file_bytes, existing_hashes=existing_hashes)
-    pages = extract_pdf(file_bytes, filename=filename)
+    pages = extract_pdf(file_bytes, filename=filename, progress_callback=progress_callback)
     return ProcessedDocument(
         filename=filename,
         hash=validation["hash"],

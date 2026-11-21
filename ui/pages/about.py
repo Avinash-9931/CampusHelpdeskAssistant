@@ -4,7 +4,12 @@ Displays course metadata, Team Invictus roster with developer attributions,
 tech stack specifications, architecture topology, and honest limitations analysis.
 """
 
+import sys
 import streamlit as st
+import pypdf
+import sklearn
+import numpy as np
+
 from config import settings
 from ui.components import (
     render_icon,
@@ -120,7 +125,60 @@ def render_about_page():
 
     st.markdown("<hr style='border:none; border-top:1px solid var(--border); margin:24px 0;'>", unsafe_allow_html=True)
 
-    # 4. System Limitations Analysis
+    # 4. System Health & Runtime Diagnostics (4.2 Health Summary)
+    st.markdown("### System Health & Runtime Diagnostics")
+    retriever = st.session_state.get("retriever")
+    stats = retriever.get_stats() if retriever else {}
+    doc_count = stats.get("document_count", 0)
+    chunk_count = stats.get("chunk_count", 0)
+    has_key = "Yes" if settings.has_api_key() else "No"
+    active_method = retriever.active_method() if retriever else "TF-IDF lexical"
+    py_ver = sys.version.split()[0]
+    st_ver = getattr(st, "__version__", "1.x")
+    pypdf_ver = getattr(pypdf, "__version__", "5.x")
+    sklearn_ver = getattr(sklearn, "__version__", "1.x")
+
+    st.markdown(f"""
+    <div class="custom-card fade-up" style="margin-bottom:20px;">
+        <div style="font-weight:700; color:var(--navy); font-size:14px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+            {render_icon("terminal", size=15, color="#2563EB")} Live Diagnostic Health Overview
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:12px;">
+                <div style="font-size:11.5px; color:#64748B; font-weight:600; text-transform:uppercase;">Python Runtime</div>
+                <div style="font-size:14px; font-weight:700; color:#0B1F3A; font-family:'JetBrains Mono', monospace; margin-top:2px;">Python {py_ver}</div>
+            </div>
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:12px;">
+                <div style="font-size:11.5px; color:#64748B; font-weight:600; text-transform:uppercase;">Core Packages</div>
+                <div style="font-size:12px; color:#0B1F3A; font-family:'JetBrains Mono', monospace; margin-top:2px;">
+                    streamlit {st_ver} · pypdf {pypdf_ver} · sklearn {sklearn_ver}
+                </div>
+            </div>
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:12px;">
+                <div style="font-size:11.5px; color:#64748B; font-weight:600; text-transform:uppercase;">Gemini Key Configured</div>
+                <div style="font-size:14px; font-weight:700; color:{'#16A34A' if has_key == 'Yes' else '#D97706'}; margin-top:2px;">
+                    {has_key} ({'AI Generation Ready' if has_key == 'Yes' else 'Offline Fallback Active'})
+                </div>
+            </div>
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:12px;">
+                <div style="font-size:11.5px; color:#64748B; font-weight:600; text-transform:uppercase;">Active Retrieval Tier</div>
+                <div style="font-size:13px; font-weight:700; color:#2563EB; margin-top:2px;">
+                    {active_method}
+                </div>
+            </div>
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:12px;">
+                <div style="font-size:11.5px; color:#64748B; font-weight:600; text-transform:uppercase;">Indexed Knowledge</div>
+                <div style="font-size:14px; font-weight:700; color:#0B1F3A; margin-top:2px;">
+                    {doc_count} documents ({chunk_count} chunks)
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<hr style='border:none; border-top:1px solid var(--border); margin:24px 0;'>", unsafe_allow_html=True)
+
+    # 5. System Limitations Analysis
     st.markdown("### Operational Boundaries & Limitations Analysis")
     st.markdown(
         "<p style='color:var(--text-muted); font-size:13px;'>"

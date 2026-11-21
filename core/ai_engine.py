@@ -8,54 +8,18 @@ import time
 from typing import Optional, List, Dict, Any
 
 from config import settings
-
-
-# ==============================================================================
-# Domain Exceptions for Classified Errors
-# ==============================================================================
-class AIEngineError(Exception):
-    """Base exception for AI Engine errors."""
-    pass
-
-
-class MissingKeyError(AIEngineError):
-    """Raised when API key is missing."""
-    pass
-
-
-class InvalidKeyError(AIEngineError):
-    """Raised when API key is rejected by Google GenAI."""
-    pass
-
-
-class RateLimitError(AIEngineError):
-    """Raised when rate limits or quotas are hit."""
-    pass
-
-
-class QuotaExceededError(RateLimitError):
-    """Backward-compatible alias for RateLimitError."""
-    pass
-
-
-class NetworkFailureError(AIEngineError):
-    """Raised on connection issues or DNS failures."""
-    pass
-
-
-class NetworkError(NetworkFailureError):
-    """Backward-compatible alias for NetworkFailureError."""
-    pass
-
-
-class ModelTimeoutError(AIEngineError):
-    """Raised when API call takes too long."""
-    pass
-
-
-class SafetyBlockError(AIEngineError):
-    """Raised when generation is blocked by safety filters."""
-    pass
+from core.exceptions import (
+    AIEngineError,
+    MissingKeyError,
+    InvalidKeyError,
+    RateLimitError,
+    QuotaExceededError,
+    NetworkFailureError,
+    NetworkError,
+    ModelTimeoutError,
+    SafetyBlockError,
+)
+from core.logger import logger
 
 
 class EmptyResponseError(AIEngineError):

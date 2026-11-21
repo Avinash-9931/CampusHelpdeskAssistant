@@ -4,7 +4,7 @@ Loads prompt templates (v1, v2, v3, final) and formats queries with XML-delimite
 """
 
 from pathlib import Path
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Optional
 from config import settings
 from core.text_chunker import TextChunk
 
@@ -83,24 +83,32 @@ class PromptManager:
         self,
         query: str,
         chunks: List[Any],
-        version: str = "final"
+        version: str = "final",
+        history: Optional[List[Dict[str, str]]] = None
     ) -> str:
         """
-        Assembles the final prompt by injecting context and student query.
+        Assembles the final prompt by safely injecting context, student query, and conversation history.
+        Uses safe token substitution to prevent format collisions with XML tags or curly braces.
         """
         template = self.get_template(version)
         if not template:
             template = self.get_template("final")
 
         formatted_context = self.format_context(chunks)
+        formatted_history = "No previous conversation history."
+        if history:
+            formatted_history = "\n".join(
+                f"{m.get('role', 'user')}: {m.get('content', '')}"
+                for m in history
+            )
 
-        if version.lower() == "v1":
-            return template.format(query=query)
-        elif version.lower() in ["v2", "v3"]:
-            return template.format(context=formatted_context, query=query)
-        else:
-            # Final optimized prompt
-            return template.format(context=formatted_context, query=query)
+        # Safe token replacement
+        result = template
+        result = result.replace("{context}", formatted_context)
+        result = result.replace("{question}", query)
+        result = result.replace("{query}", query)
+        result = result.replace("{history}", formatted_history)
+        return result
 
     def get_all_prompts(self) -> Dict[str, str]:
         """Returns all prompt templates for comparison and UI display."""

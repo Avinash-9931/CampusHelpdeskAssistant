@@ -19,6 +19,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from config import settings
 from core.pdf_processor import ProcessedDocument, PageData
 from core.text_chunker import TextChunk
+from core.logger import logger
 
 
 # ==============================================================================
@@ -116,6 +117,7 @@ class KnowledgeBase:
         
         # Semantic Index Cache: chunk_id -> list[float]
         self.embeddings_cache: Dict[str, List[float]] = {}
+        self.recovery_warning: Optional[str] = None
         
         # Load persisted data
         self.load_from_disk()
@@ -170,10 +172,19 @@ class KnowledgeBase:
 
             self.rebuild_index()
             self._load_embeddings_cache()
+            self.recovery_warning = None
             return True
-        except Exception:
+        except Exception as e:
+            logger.warning(
+                f"Failed to load knowledge base from disk: {e}. "
+                "Corrupted index detected; recovering with empty knowledge base state."
+            )
             self.documents = {}
             self.chunks = []
+            self.recovery_warning = (
+                "⚠️ Corrupted index file detected in data/processed/. "
+                "Knowledge base safely recovered with clean state."
+            )
             return False
 
     def _load_embeddings_cache(self) -> None:
@@ -466,7 +477,8 @@ class KnowledgeBase:
             "document_count": doc_count,
             "chunk_count": chunk_count,
             "total_pages": total_pages,
-            "has_index": chunk_count > 0
+            "has_index": chunk_count > 0,
+            "recovery_warning": self.recovery_warning
         }
 
     def get_existing_hashes(self) -> set:

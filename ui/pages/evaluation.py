@@ -23,7 +23,7 @@ from ui.components import (
 )
 
 
-def _evaluate_single_case(row: pd.Series) -> tuple[str, str]:
+def _evaluate_single_case(row: pd.Series, prompt_version: str = "final") -> tuple[str, str]:
     """
     Executes a single test case against the active knowledge base.
     Returns (actual_output, result) where result is 'PASS', 'FAIL', or 'PENDING'.
@@ -73,7 +73,7 @@ def _evaluate_single_case(row: pd.Series) -> tuple[str, str]:
         question=q_input,
         history=history,
         prefer_semantic=st.session_state.get("prefer_semantic", False),
-        prompt_version=st.session_state.get("active_prompt_version", "final")
+        prompt_version=prompt_version
     )
 
     ans = res.answer
@@ -145,17 +145,18 @@ def render_evaluation_page():
 
     st.markdown("<hr style='border:none; border-top:1px solid var(--border); margin:18px 0;'>", unsafe_allow_html=True)
 
-    # 2. Control Bar: Run All, Filter, Download CSV
-    ctrl_col1, ctrl_col2, ctrl_col3 = st.columns([1.5, 1.5, 1])
+    # 2. Control Bar: Run All, Filter, Download CSV, Prompt Version Selector
+    ctrl_col1, ctrl_col2, ctrl_col3, ctrl_col4 = st.columns([1.5, 1.2, 1.2, 1])
 
     with ctrl_col1:
         if st.button("▶️ Run All Executable Cases", type="primary", use_container_width=True, key="run_all_eval_btn"):
             progress_bar = st.progress(0)
             status_text = st.empty()
+            active_p_ver = st.session_state.get("active_prompt_version", "final")
 
             for i, row in df_tests.iterrows():
-                status_text.markdown(f"Running **{row['ID']}** ({row['Category']})...")
-                out_text, res_status = _evaluate_single_case(row)
+                status_text.markdown(f"Running **{row['ID']}** ({row['Category']}) with `{active_p_ver}` prompt...")
+                out_text, res_status = _evaluate_single_case(row, prompt_version=active_p_ver)
                 df_tests.at[i, "Actual output"] = out_text
                 df_tests.at[i, "Result"] = res_status
                 progress_bar.progress((i + 1) / total_cases)
@@ -170,6 +171,19 @@ def render_evaluation_page():
         selected_cat = st.selectbox("Filter by Category", cat_options, label_visibility="collapsed")
 
     with ctrl_col3:
+        prompt_opts = ["final", "v3", "v2", "v1"]
+        cur_p_ver = st.session_state.get("active_prompt_version", "final")
+        cur_idx = prompt_opts.index(cur_p_ver) if cur_p_ver in prompt_opts else 0
+        selected_p_ver = st.selectbox(
+            "Evaluation Prompt",
+            prompt_opts,
+            index=cur_idx,
+            help="Select prompt version to evaluate (default is Final)",
+            label_visibility="collapsed"
+        )
+        st.session_state["active_prompt_version"] = selected_p_ver
+
+    with ctrl_col4:
         csv_data = df_tests.to_csv(index=False).encode("utf-8")
         st.download_button(
             label="📥 Download CSV",
