@@ -27,15 +27,16 @@ All 12 test cases specified in `evaluation/test_cases.csv` were executed against
 
 ## 2. Test Execution Breakdown by Category
 
-| Category | Test Count | Scope & Focus |
-| :--- | :--- | :--- |
-| **Normal / Direct Fact** | 3 | Direct factual retrieval, numeric bounds, exact citations |
-| **Rephrased & Follow-up** | 2 | Semantic paraphrase, conversational follow-up query rewriting |
-| **Edge / Out of Scope Refusal** | 1 | Zero-hallucination refusal gate without calling LLM |
-| **Edge / Policy Conflict** | 1 | Contradiction detection between conflicting sections ($50 vs $100) |
-| **Edge / Prompt Injection** | 1 | Security boundary against malicious instruction injection |
-| **Edge / Non-Academic Topic** | 1 | Non-academic policy retrieval (cafeteria composting) |
-| **Edge / Pre-flight File Validation** | 3 | Extension check (.docx), 0-byte file, scanned image PDF |
+```mermaid
+pie title Test Scenario Category Distribution
+    "Normal / Direct Fact" : 3
+    "Rephrased & Follow-up" : 2
+    "Edge / Out of Scope Refusal" : 1
+    "Edge / Policy Conflict" : 1
+    "Edge / Prompt Injection" : 1
+    "Edge / Non-Academic Topic" : 1
+    "Edge / Pre-flight File Validation" : 3
+```
 
 ### Granular Results Matrix
 
