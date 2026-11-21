@@ -4,8 +4,9 @@ Loads prompt templates (v1, v2, v3, final) and formats queries with XML-delimite
 """
 
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from config import settings
+from core.text_chunker import TextChunk
 
 
 class PromptManager:
@@ -36,33 +37,52 @@ class PromptManager:
         """Returns the raw prompt template for a given version."""
         return self.templates.get(version.lower(), self.templates.get("final", ""))
 
-    def format_context(self, chunks: List[Dict[str, Any]]) -> str:
+    def format_context(self, chunks: List[Any]) -> str:
         """
         Formats retrieved chunks into clear, delimited blocks with source metadata.
         Explicitly presents filename, page, and chunk identifier.
+        Marks context as untrusted reference text.
         """
         if not chunks:
-            return "No matching context found."
+            return "No matching official document context found."
 
         formatted_entries = []
         for idx, chunk in enumerate(chunks, 1):
-            filename = chunk.get("filename", "Unknown Document")
-            page = chunk.get("page", 1)
-            chunk_id = chunk.get("chunk_id", f"chunk_{idx}")
-            text = chunk.get("text", "").strip()
+            if isinstance(chunk, TextChunk):
+                filename = chunk.filename
+                page = chunk.page
+                chunk_id = chunk.chunk_id
+                text = chunk.text.strip()
+            elif hasattr(chunk, "chunk"):  # RetrievedChunk
+                filename = chunk.chunk.filename
+                page = chunk.chunk.page
+                chunk_id = chunk.chunk.chunk_id
+                text = chunk.chunk.text.strip()
+            elif isinstance(chunk, dict):
+                filename = chunk.get("filename", "Unknown Document")
+                page = chunk.get("page", 1)
+                chunk_id = chunk.get("chunk_id", f"chunk_{idx}")
+                text = chunk.get("text", "").strip()
+            else:
+                filename = getattr(chunk, "filename", "Unknown Document")
+                page = getattr(chunk, "page", 1)
+                chunk_id = getattr(chunk, "chunk_id", f"chunk_{idx}")
+                text = getattr(chunk, "text", "").strip()
 
             entry = (
+                f'<document_context filename="{filename}" page="{page}" chunk_id="{chunk_id}">\n'
                 f"[Source: {filename} | Page: {page} | Chunk ID: {chunk_id}]\n"
-                f"{text}"
+                f"{text}\n"
+                f"</document_context>"
             )
             formatted_entries.append(entry)
 
-        return "\n\n---\n\n".join(formatted_entries)
+        return "\n\n".join(formatted_entries)
 
     def build_prompt(
         self,
         query: str,
-        chunks: List[Dict[str, Any]],
+        chunks: List[Any],
         version: str = "final"
     ) -> str:
         """

@@ -39,18 +39,35 @@ TEST_CASES_FILE = EVALUATION_DIR / "test_cases.csv"
 # Model & API settings
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
+GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "text-embedding-004").strip()
 
 # Ingestion & Chunking parameters
-MAX_UPLOAD_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "15"))
-MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
+MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", os.getenv("MAX_UPLOAD_SIZE_MB", "15")))
+MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024
+MAX_UPLOAD_SIZE_MB = MAX_UPLOAD_MB
+MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_BYTES
 
-CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "800"))
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "900"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "150"))
 
 # Information Retrieval parameters
 TOP_K = int(os.getenv("TOP_K", "4"))
-SIMILARITY_THRESHOLD = float(os.getenv("SIMILARITY_THRESHOLD", "0.13"))
+MIN_RELEVANCE_SCORE = float(os.getenv("MIN_RELEVANCE_SCORE", os.getenv("SIMILARITY_THRESHOLD", "0.13")))
+SIMILARITY_THRESHOLD = MIN_RELEVANCE_SCORE
 DEFAULT_RETRIEVAL_METHOD = os.getenv("DEFAULT_RETRIEVAL_METHOD", "lexical").strip().lower()
+
+# Question validation & Conversation history parameters
+MAX_QUESTION_CHARS = int(os.getenv("MAX_QUESTION_CHARS", "1000"))
+HISTORY_TURNS = int(os.getenv("HISTORY_TURNS", "5"))
+
+
+def has_api_key() -> bool:
+    """
+    Checks whether a non-empty Gemini API key is configured.
+    Never prints or logs the key.
+    """
+    return bool(GEMINI_API_KEY and GEMINI_API_KEY.strip())
+
 
 # Metadata & Attribution
 PROJECT_METADATA = {
