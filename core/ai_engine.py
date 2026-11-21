@@ -148,29 +148,43 @@ class AIEngine:
         if system_prompt:
             config.system_instruction = system_prompt
 
+        candidate_models = [self.model_name]
+        for fallback_name in ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-2.5-flash"]:
+            if fallback_name not in candidate_models:
+                candidate_models.append(fallback_name)
+
         last_error = None
-        for attempt in range(max_retries):
-            try:
-                response = self._client.models.generate_content(
-                    model=self.model_name,
-                    contents=user_prompt,
-                    config=config
-                )
-                if response and response.text and response.text.strip():
-                    return response.text.strip()
-                raise EmptyResponseError("Gemini returned an empty text response.")
-            except EmptyResponseError as ere:
-                raise ere
-            except Exception as e:
-                classified = self.classify_error(e)
-                last_error = classified
+        for current_model in candidate_models:
+            for attempt in range(max_retries):
+                try:
+                    response = self._client.models.generate_content(
+                        model=current_model,
+                        contents=user_prompt,
+                        config=config
+                    )
+                    if response and response.text and response.text.strip():
+                        return response.text.strip()
+                    raise EmptyResponseError("Gemini returned an empty text response.")
+                except EmptyResponseError as ere:
+                    raise ere
+                except Exception as e:
+                    classified = self.classify_error(e)
+                    last_error = classified
 
-                # Do not retry on non-transient errors (invalid key or safety blocks)
-                if isinstance(classified, (InvalidKeyError, SafetyBlockError)):
-                    raise classified
+                    # Do not retry on non-transient errors (invalid key or safety blocks)
+                    if isinstance(classified, (InvalidKeyError, SafetyBlockError)):
+                        raise classified
 
-                if attempt < max_retries - 1:
-                    time.sleep(1.0 * (2 ** attempt))
+                    # If model quota is exhausted, immediately switch to next candidate model
+                    if isinstance(classified, RateLimitError):
+                        logger.warning(f"Model '{current_model}' hit rate limit. Trying next candidate model...")
+                        break
+
+                    if attempt < max_retries - 1:
+                        time.sleep(1.0 * (2 ** attempt))
+
+            if not isinstance(last_error, RateLimitError):
+                break
 
         raise last_error if last_error else UnknownAPIError("Generation failed after retries.")
 
