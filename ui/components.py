@@ -298,15 +298,12 @@ def render_empty_state(title: str, message: str, icon_name: str = "help-circle")
 # ==============================================================================
 # 5. CHAT MESSAGE BUILDERS
 # ==============================================================================
-def render_fallback_notice_banner() -> str:
+def render_fallback_notice_banner(error_msg: Optional[str] = None) -> str:
     """Banner displayed above fallback mode answers to clearly demarcate evidence from AI generation."""
     info_icon = render_icon("info", size=16, color="#D97706")
-    return f"""
-    <div style="background-color:#FFFBEB; border:1px solid #FDE68A; border-radius:8px; padding:10px 14px; margin-bottom:12px; display:flex; align-items:center; gap:10px; font-size:12.5px; color:#92400E;">
-        {info_icon}
-        <div>
-            <strong>Direct Evidence Mode:</strong> Generative AI is currently unavailable (no Gemini API key configured). 
-            Showing verified verbatim excerpts retrieved from official policy files.
-        </div>
-    </div>
-    """
+    if error_msg:
+        notice_text = f"<strong>AI Generation Temporarily Unavailable:</strong> {sanitize_text(error_msg)}. Showing direct evidence from official documents."
+    else:
+        notice_text = "<strong>Direct Evidence Mode:</strong> Offline lexical retrieval mode active. Showing verified verbatim excerpts retrieved from official policy files."
+    return f'<div style="background-color:#FFFBEB; border:1px solid #FDE68A; border-radius:8px; padding:10px 14px; margin-bottom:12px; display:flex; align-items:center; gap:10px; font-size:12.5px; color:#92400E;">{info_icon}<div>{notice_text}</div></div>'
+

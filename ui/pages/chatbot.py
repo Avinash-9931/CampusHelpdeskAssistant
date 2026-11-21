@@ -7,7 +7,7 @@ collapsible source citation drawers, mode badges, and empty states.
 
 import time
 import html
-import time
+import textwrap
 from datetime import datetime
 import streamlit as st
 from config import settings
@@ -118,7 +118,7 @@ def render_chatbot_page():
             if role == "user":
                 # User Message Bubble (HTML escaped for XSS safety)
                 safe_user_content = html.escape(content)
-                st.markdown(f"""
+                user_html = textwrap.dedent(f"""
                 <div class="chat-message-row user">
                     <div class="chat-bubble-user">
                         <div style="font-size:11px; font-weight:700; color:#93C5FD; margin-bottom:4px; display:flex; justify-content:space-between;">
@@ -128,18 +128,23 @@ def render_chatbot_page():
                         <div style="font-size:14px; line-height:1.5;">{safe_user_content}</div>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
+                """).strip()
+                st.markdown(user_html, unsafe_allow_html=True)
             else:
                 # Assistant Message Bubble
                 mode = msg.get("mode", "gemini")
                 method = msg.get("retrieval_method", "TF-IDF lexical")
                 citations = msg.get("citations", [])
+                error_info = msg.get("error")
 
                 # Mode badge determination
                 if mode == "gemini":
                     mode_badge = render_badge("Gemini 2.5 Flash", kind="success", icon_name="sparkles")
                 elif mode == "fallback":
-                    mode_badge = render_badge("Evidence only (no API key)", kind="warning", icon_name="shield-check")
+                    if error_info:
+                        mode_badge = render_badge("Rate-Limit Fallback", kind="warning", icon_name="shield-check")
+                    else:
+                        mode_badge = render_badge("Evidence only (no API key)", kind="warning", icon_name="shield-check")
                 elif mode == "no_context":
                     mode_badge = render_badge("No relevant context", kind="danger", icon_name="alert-triangle")
                 else:
@@ -148,9 +153,9 @@ def render_chatbot_page():
                 method_badge = render_badge(method, kind="accent")
 
                 # Fallback notice banner if mode is fallback
-                fallback_banner = render_fallback_notice_banner() if mode == "fallback" else ""
+                fallback_banner = render_fallback_notice_banner(error_msg=error_info) if mode == "fallback" else ""
 
-                st.markdown(f"""
+                header_html = textwrap.dedent(f"""
                 <div class="chat-message-row assistant">
                     <div class="chat-bubble-assistant">
                         <div class="chat-bubble-meta">
@@ -167,12 +172,12 @@ def render_chatbot_page():
                             </div>
                         </div>
                         {fallback_banner}
-                        <div class="chat-bubble-content">
-                            {content}
-                        </div>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
+                """).strip()
+                st.markdown(header_html, unsafe_allow_html=True)
+                # Render content with native markdown formatting
+                st.markdown(content)
 
                 # Collapsible Source Cards under Answer
                 if citations:
