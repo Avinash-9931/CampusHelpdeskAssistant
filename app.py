@@ -38,7 +38,22 @@ st.set_page_config(
 def init_session_state():
     """Initializes persistent components and session state variables."""
     if "retriever" not in st.session_state:
-        st.session_state.retriever = KnowledgeBase()
+        kb = KnowledgeBase()
+        # Auto-seed the demo handbook if knowledge base has no documents
+        if len(kb.documents) == 0:
+            demo_path = settings.DEMO_DIR / "university_policy_demo.pdf"
+            if demo_path.exists():
+                try:
+                    with open(demo_path, "rb") as f:
+                        data = f.read()
+                    from core.pdf_processor import process_document
+                    from core.text_chunker import chunk_pages
+                    doc = process_document(data, "university_policy_demo.pdf")
+                    chunks = chunk_pages(doc.pages, filename="university_policy_demo.pdf")
+                    kb.add_document(doc, chunks)
+                except Exception:
+                    pass
+        st.session_state.retriever = kb
 
     if "ai_engine" not in st.session_state:
         st.session_state.ai_engine = AIEngine()
