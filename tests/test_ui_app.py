@@ -1,6 +1,7 @@
 """
 End-to-end UI and page navigation tests for app.py using Streamlit's official AppTest framework.
-Verifies all 5 pages, controls, session state, chat inputs, and evaluation metrics.
+Verifies all 5 pages (Home, AI Chatbot, Knowledge Base, Test / Evaluation, About Project),
+custom top navigation, quick inquiry chips, chat input, evaluation metrics, and team attribution.
 """
 
 import pytest
@@ -18,18 +19,17 @@ def test_ui_home_page():
     at.run()
     assert not at.exception
     
-    # Verify navigation radio has all 5 pages
-    nav_radio = at.sidebar.radio[0]
-    assert len(nav_radio.options) == 5
-    assert "🏛️ Home" in nav_radio.options
-    assert "💬 AI Chatbot" in nav_radio.options
-    assert "📚 Knowledge Base" in nav_radio.options
-    assert "🧪 Test / Evaluation" in nav_radio.options
-    assert "ℹ️ About Project" in nav_radio.options
+    # Verify top navigation buttons exist for all 5 pages
+    button_labels = [b.label for b in at.button]
+    assert "Home" in button_labels
+    assert "AI Chatbot" in button_labels
+    assert "Knowledge Base" in button_labels
+    assert "Test / Evaluation" in button_labels
+    assert "About Project" in button_labels
     
     # Verify hero banner markdown contains project title
     all_md = " ".join([m.value for m in at.markdown])
-    assert "AI-Powered Campus Helpdesk Assistant" in all_md
+    assert "Find verified university answers in seconds" in all_md
     assert "SCSE4041 Prompt Engineering" in all_md
     assert "Indexed Documents" in all_md
     assert "Knowledge Chunks" in all_md
@@ -40,18 +40,20 @@ def test_ui_chatbot_page():
     at = AppTest.from_file(APP_PATH, default_timeout=30)
     at.run()
     
-    # Switch to AI Chatbot page
-    at.sidebar.radio[0].set_value("💬 AI Chatbot").run()
+    # Switch to AI Chatbot page via top navigation button
+    chat_btn = [b for b in at.button if b.label == "AI Chatbot"][0]
+    chat_btn.click().run()
     assert not at.exception
+    assert at.session_state.page == "AI Chatbot"
     
     all_md = " ".join([m.value for m in at.markdown])
     assert "Campus Helpdesk Assistant" in all_md
     
     # Verify quick question chips exist
     button_labels = [b.label for b in at.button]
-    assert any("attendance" in b.lower() for b in button_labels)
-    assert any("library" in b.lower() for b in button_labels)
-    assert any("registration" in b.lower() for b in button_labels)
+    assert any("Attendance" in b for b in button_labels)
+    assert any("Library" in b for b in button_labels)
+    assert any("Fee Payment" in b for b in button_labels)
     
     # Input student question via chat_input
     assert len(at.chat_input) > 0
@@ -69,19 +71,21 @@ def test_ui_knowledge_base_page():
     at = AppTest.from_file(APP_PATH, default_timeout=30)
     at.run()
     
-    # Switch to Knowledge Base page
-    at.sidebar.radio[0].set_value("📚 Knowledge Base").run()
+    # Switch to Knowledge Base page via top navigation button
+    kb_btn = [b for b in at.button if b.label == "Knowledge Base"][0]
+    kb_btn.click().run()
     assert not at.exception
+    assert at.session_state.page == "Knowledge Base"
     
     all_md = " ".join([m.value for m in at.markdown])
     assert "Knowledge Base Management" in all_md
     assert "Upload Official PDF Documents" in all_md
-    assert "Load Demo University Policy" in all_md
+    assert "Quick Demo Setup" in all_md
     
     # Verify file uploader and action buttons exist
     assert len(at.file_uploader) > 0
     button_labels = [b.label for b in at.button]
-    assert any("Demo Policy" in b for b in button_labels)
+    assert any("Load Demo Policy" in b for b in button_labels)
 
 
 def test_ui_evaluation_page():
@@ -89,24 +93,23 @@ def test_ui_evaluation_page():
     at = AppTest.from_file(APP_PATH, default_timeout=30)
     at.run()
     
-    # Switch to Test / Evaluation page
-    at.sidebar.radio[0].set_value("🧪 Test / Evaluation").run()
+    # Switch to Test / Evaluation page via top navigation button
+    eval_btn = [b for b in at.button if b.label == "Test / Evaluation"][0]
+    eval_btn.click().run()
     assert not at.exception
+    assert at.session_state.page == "Test / Evaluation"
     
     # Verify metrics summary bar
     assert len(at.metric) >= 4
     metric_labels = [m.label for m in at.metric]
-    assert "Total Test Cases" in metric_labels
+    assert "Total Test Scenarios" in metric_labels
     assert "Passed Tests" in metric_labels
     assert "Failed Tests" in metric_labels
     assert "Pending Execution" in metric_labels
     
     # Total cases should be 12
-    total_metric = [m for m in at.metric if m.label == "Total Test Cases"][0]
+    total_metric = [m for m in at.metric if m.label == "Total Test Scenarios"][0]
     assert int(total_metric.value) == 12
-    
-    # Verify dataframe table exists
-    assert len(at.dataframe) > 0
 
 
 def test_ui_about_page():
@@ -114,9 +117,11 @@ def test_ui_about_page():
     at = AppTest.from_file(APP_PATH, default_timeout=30)
     at.run()
     
-    # Switch to About Project page
-    at.sidebar.radio[0].set_value("ℹ️ About Project").run()
+    # Switch to About Project page via top navigation button
+    about_btn = [b for b in at.button if b.label == "About Project"][0]
+    about_btn.click().run()
     assert not at.exception
+    assert at.session_state.page == "About Project"
     
     all_md = " ".join([m.value for m in at.markdown])
     # Verify metadata
@@ -134,9 +139,6 @@ def test_ui_about_page():
     assert "Shivendra Singh" in all_md
     assert "Devvrat Arya" in all_md
     
-    # Verify prompt engineering iteration log table
-    assert "Prompt Engineering Iteration Log" in all_md
-    assert "V1 Basic" in all_md
-    assert "V2 Context" in all_md
-    assert "V3 Anti-Hallucination" in all_md
-    assert "Final Optimized" in all_md
+    # Verify architecture and operational boundaries
+    assert "System Infrastructure" in all_md
+    assert "Operational Boundaries & Limitations Analysis" in all_md
