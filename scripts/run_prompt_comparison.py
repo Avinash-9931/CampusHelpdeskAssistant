@@ -166,16 +166,31 @@ def main():
             assert "{question}" not in assembled_prompt
             
             if has_key:
-                try:
-                    response_text = ai_engine.generate(
-                        system_prompt=None,
-                        user_prompt=assembled_prompt,
-                        temperature=0.0
-                    )
-                    metrics = evaluate_response_criteria(category, response_text, retrieved_chunks)
-                except Exception as e:
-                    response_text = f"API_ERROR: {str(e)}"
-                    metrics = {"error": str(e)}
+                max_retries = 3
+                response_text = ""
+                metrics = {}
+                for attempt in range(max_retries):
+                    try:
+                        time.sleep(3.0)  # Rate limit pacing for free tier RPM
+                        response_text = ai_engine.generate(
+                            system_prompt=None,
+                            user_prompt=assembled_prompt,
+                            temperature=0.0
+                        )
+                        metrics = evaluate_response_criteria(category, response_text, retrieved_chunks)
+                        break
+                    except Exception as e:
+                        if "429" in str(e) or "quota" in str(e).lower() or "rate" in str(e).lower():
+                            wait_sec = 8 * (attempt + 1)
+                            print(f"       [Pacing] Free-tier rate limit hit. Waiting {wait_sec}s before retry...")
+                            time.sleep(wait_sec)
+                        else:
+                            response_text = f"API_ERROR: {str(e)}"
+                            metrics = {"error": str(e)}
+                            break
+                if not response_text:
+                    response_text = "API_ERROR: Rate limit backoff exhausted."
+                    metrics = {"error": "Rate limit backoff exhausted."}
             else:
                 response_text = "[DRY_RUN_PASS] Prompt assembled successfully with delimited context."
                 metrics = {

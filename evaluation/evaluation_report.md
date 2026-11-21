@@ -4,7 +4,7 @@
 **Milestone:** 2 | **Course:** SCSE4041 Prompt Engineering  
 **Team:** Invictus (PE-B01-15)  
 **Evaluation Date:** 2026-11-21  
-**Operating Execution Mode:** Lexical Fallback (Direct Retrieved Evidence)
+**Operating Execution Mode:** Generative AI (Gemini)
 
 ---
 
