@@ -139,16 +139,18 @@ def render_chatbot_page():
 
                 # Mode badge determination
                 if mode == "gemini":
-                    mode_badge = render_badge("Gemini 2.5 Flash", kind="success", icon_name="sparkles")
+                    mode_badge = render_badge(f"Gemini AI ({settings.GEMINI_MODEL})", kind="success", icon_name="sparkles")
                 elif mode == "fallback":
-                    if error_info:
-                        mode_badge = render_badge("Rate-Limit Fallback", kind="warning", icon_name="shield-check")
-                    else:
+                    if not settings.has_api_key():
                         mode_badge = render_badge("Evidence only (no API key)", kind="warning", icon_name="shield-check")
+                    elif error_info:
+                        mode_badge = render_badge("API Rate-Limit Fallback", kind="warning", icon_name="shield-check")
+                    else:
+                        mode_badge = render_badge("Direct Evidence Mode", kind="warning", icon_name="shield-check")
                 elif mode == "no_context":
                     mode_badge = render_badge("No relevant context", kind="danger", icon_name="alert-triangle")
                 else:
-                    mode_badge = render_badge("Error Notice", kind="danger", icon_name="x-circle")
+                    mode_badge = render_badge("Notice", kind="danger", icon_name="x-circle")
 
                 method_badge = render_badge(method, kind="accent")
 
@@ -156,41 +158,38 @@ def render_chatbot_page():
                 fallback_banner = render_fallback_notice_banner(error_msg=error_info) if mode == "fallback" else ""
 
                 header_html = textwrap.dedent(f"""
-                <div class="chat-message-row assistant">
-                    <div class="chat-bubble-assistant">
-                        <div class="chat-bubble-meta">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <div style="width:24px; height:24px; background:var(--navy); border-radius:6px; display:flex; align-items:center; justify-content:center; color:#FFFFFF;">
-                                    {render_icon("graduation-cap", size=13)}
-                                </div>
-                                <span style="font-weight:700; color:var(--navy); font-size:13px;">Campus Helpdesk Assistant</span>
-                                {mode_badge}
-                            </div>
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                {method_badge}
-                                <span>{timestamp}</span>
-                            </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid #E2E8F0;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="width:26px; height:26px; background:#0B1F3A; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#FFFFFF;">
+                            {render_icon("graduation-cap", size=14)}
                         </div>
-                        {fallback_banner}
+                        <span style="font-weight:700; color:#0B1F3A; font-size:13.5px;">Campus Helpdesk Assistant</span>
+                        {mode_badge}
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        {method_badge}
+                        <span style="font-size:11.5px; color:#64748B;">{timestamp}</span>
                     </div>
                 </div>
+                {fallback_banner}
                 """).strip()
-                st.markdown(header_html, unsafe_allow_html=True)
-                # Render content with native markdown formatting
-                st.markdown(content)
 
-                # Collapsible Source Cards under Answer
-                if citations:
-                    with st.expander(f"📌 Verified Citations & Source Evidence ({len(citations)})", expanded=False):
-                        for cite in citations:
-                            fname = cite.get("filename", "")
-                            page = cite.get("page", 1)
-                            snippet = cite.get("snippet", "")
-                            score = cite.get("score")
-                            st.markdown(
-                                render_source_item(filename=fname, page=page, snippet=snippet, score=score),
-                                unsafe_allow_html=True
-                            )
+                with st.container(border=True):
+                    st.markdown(header_html, unsafe_allow_html=True)
+                    st.markdown(content)
+
+                    # Collapsible Source Cards under Answer
+                    if citations:
+                        with st.expander(f"📌 Verified Citations & Source Evidence ({len(citations)})", expanded=False):
+                            for cite in citations:
+                                fname = cite.get("filename", "")
+                                page = cite.get("page", 1)
+                                snippet = cite.get("snippet", "")
+                                score = cite.get("score")
+                                st.markdown(
+                                    render_source_item(filename=fname, page=page, snippet=snippet, score=score),
+                                    unsafe_allow_html=True
+                                )
 
     # 3. Chat Input Box (Sticky Bottom)
     chat_input_val = st.chat_input("Type your question here (e.g. 'What is the attendance rule?')")
@@ -264,6 +263,7 @@ def render_chatbot_page():
             "mode": result.mode,
             "retrieval_method": result.retrieval_method,
             "citations": [s.to_dict() for s in result.sources],
+            "error": result.error,
             "timestamp": datetime.now().strftime("%I:%M %p")
         })
 
