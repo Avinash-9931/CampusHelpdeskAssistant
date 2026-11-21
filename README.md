@@ -8,7 +8,7 @@
 > - **Divyanshu Raj** (`S24CSEU0800`) — Frontend Design, System Integration & Empirical Testing  
 > **Team Members:**  
 > - Kushagra Varshney (`S24CSEU0060`)  
-> - Lakshay Bhatia (`S24CSEU062`)  
+> - Lakshay Bhatia (`S24CSEU0062`)  
 > - Shivendra Singh (`S24CSEU0416`)  
 > - Devvrat Arya (`S24CSEU0866`)
 
@@ -77,7 +77,8 @@ campus-helpdesk-assistant/
 │   ├── test_pdf_processor.py   # Unit tests for PDF extraction & error classification
 │   ├── test_retriever.py       # Unit tests for lexical search & threshold gating
 │   ├── test_prompt_rules.py    # Unit tests for prompt integrity & injection immunity
-│   └── test_chatbot.py         # End-to-end integration tests for chatbot behavior
+│   ├── test_chatbot.py         # End-to-end integration tests for chatbot behavior
+│   └── test_ui_app.py          # End-to-end UI AppTest suite covering all 5 application pages
 ├── evaluation/
 │   ├── test_cases.csv          # 12 empirical test scenarios with verified outputs
 │   ├── run_evaluation.py       # Automated test runner script
@@ -132,7 +133,7 @@ GEMINI_MODEL=gemini-2.5-flash
 
 # System parameters
 MAX_UPLOAD_SIZE_MB=15
-CHUNK_SIZE=800
+CHUNK_SIZE=900
 CHUNK_OVERLAP=150
 SIMILARITY_THRESHOLD=0.13
 DEFAULT_RETRIEVAL_METHOD=lexical
@@ -161,8 +162,8 @@ Open your browser at `http://localhost:8501`.
 
 ## 🧪 Running Automated Tests
 
-### 1. Pytest Unit & Integration Test Suite
-Execute the full pytest suite (24 unit and integration tests):
+### 1. Pytest Unit, Integration & UI Test Suite
+Execute the full pytest suite (35 unit, integration, and UI tests):
 ```bash
 pytest tests/ -v
 ```
@@ -171,6 +172,7 @@ pytest tests/ -v
 - `test_retriever.py`: Lexical index construction, TF-IDF cosine similarity, similarity threshold gating, document deletion, and state persistence.
 - `test_prompt_rules.py`: Loading of `v1`, `v2`, `v3`, and `final` prompts; verification of XML context delimiters; prompt injection defense instructions; and citation requirements.
 - `test_chatbot.py`: Query sanitization, follow-up resolution, offline fallback execution, out-of-domain refusal routing, and prompt injection immunity.
+- `test_ui_app.py`: Programmatic end-to-end verification of all 5 Streamlit application pages (Home, AI Chatbot, Knowledge Base, Test / Evaluation, About Project).
 
 ### 2. Empirical Evaluation Suite
 Run the 12 evaluation test cases and regenerate `evaluation_report.md`:
