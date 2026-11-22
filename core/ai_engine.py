@@ -85,9 +85,9 @@ class AIEngine:
             return InvalidKeyError(
                 "Invalid or expired Gemini API key. Please check your credentials at https://aistudio.google.com/"
             )
-        if "quota" in err_msg or "rate limit" in err_msg or "429" in err_msg or "resource_exhausted" in err_msg:
+        if "quota" in err_msg or "rate limit" in err_msg or "429" in err_msg or "resource_exhausted" in err_msg or "503" in err_msg or "unavailable" in err_msg or "high demand" in err_msg:
             return RateLimitError(
-                "Gemini API rate limit or quota exceeded. Please wait a moment and try again."
+                "Gemini API rate limit or high demand. Trying alternate model."
             )
         if "timeout" in err_msg or "deadline" in err_msg:
             return ModelTimeoutError(
@@ -149,7 +149,7 @@ class AIEngine:
             config.system_instruction = system_prompt
 
         candidate_models = [self.model_name]
-        for fallback_name in ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-2.5-flash"]:
+        for fallback_name in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
             if fallback_name not in candidate_models:
                 candidate_models.append(fallback_name)
 

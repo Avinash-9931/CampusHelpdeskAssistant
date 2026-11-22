@@ -179,6 +179,10 @@ def render_chatbot_page():
                 if "<div" in clean_content or "<svg" in clean_content:
                     clean_content = re.sub(r'<[^>]+>', '', clean_content).strip()
 
+                # Clean requested warning lines
+                clean_content = re.sub(r'⚠️\s*\*?\*?AI generation[^\n]*\n*', '', clean_content, flags=re.IGNORECASE).strip()
+                clean_content = re.sub(r'ℹ️\s*\*?\*?Direct Evidence Mode[^\n]*\n*', '', clean_content, flags=re.IGNORECASE).strip()
+
                 asst_card_html = clean_html(f"""
                 <div class="calley-msg-assistant-container">
                     <div class="calley-avatar-circle calley-avatar-bot">
@@ -198,13 +202,6 @@ def render_chatbot_page():
                 st.markdown(asst_card_html, unsafe_allow_html=True)
 
                 with st.container(border=True):
-                    if mode == "fallback":
-                        fallback_desc = f" ({error_info})" if error_info else ""
-                        st.info(
-                            f"ℹ️ **Direct Evidence Mode Active:** Generative AI is operating in fallback mode{fallback_desc}. "
-                            f"Showing verified verbatim excerpts retrieved directly from official policy files."
-                        )
-
                     st.markdown(clean_content)
 
                     # Collapsible verified source citations
@@ -273,7 +270,8 @@ def render_chatbot_page():
 
         skeleton_placeholder.empty()
 
-        formatted_answer = result.answer
+        formatted_answer = re.sub(r'⚠️\s*\*?\*?AI generation[^\n]*\n*', '', result.answer, flags=re.IGNORECASE).strip()
+        formatted_answer = re.sub(r'ℹ️\s*\*?\*?Direct Evidence Mode[^\n]*\n*', '', formatted_answer, flags=re.IGNORECASE).strip()
 
         st.session_state.chat_history.append({
             "role": "assistant",
