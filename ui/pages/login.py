@@ -113,17 +113,6 @@ def render_login_page():
             # TAB 2: INSTITUTIONAL ID + PASSWORD
             # ==================================================================
             with tab_id:
-                # Demo credentials hint for evaluators
-                st.markdown("""
-                <div style="background:#F1F5F9; border:1px solid #E2E8F0; border-radius:8px; padding:10px 14px; margin:8px 0 14px 0; font-size:12px; color:#475569;">
-                    <div style="font-weight:600; margin-bottom:3px; color:#1E293B;">Demo Evaluation Credentials:</div>
-                    <div style="display:flex; justify-content:space-between;">
-                        <span><strong>Admin:</strong> <code>admin</code> / <code>admin123</code></span>
-                        <span><strong>Student:</strong> <code>student</code> / <code>student123</code></span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
                 with st.form("login_credentials_form", clear_on_submit=False):
                     user_id_input = st.text_input(
                         "User ID / Student Roll Number",

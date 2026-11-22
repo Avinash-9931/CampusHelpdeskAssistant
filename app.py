@@ -206,14 +206,7 @@ with nav_links_col:
                 st.rerun()
 
 with nav_auth_col:
-    role_col, action_col = st.columns([1.1, 1.1], gap="small")
-    with role_col:
-        other_role = "Student" if u_role == "Admin" else "Admin"
-        label = "🎓 Student" if u_role == "Student" else "🛡️ Admin"
-        if st.button(label, key="nav_role_toggle_btn", use_container_width=True, help="Toggle role for testing"):
-            curr_user["role"] = other_role
-            st.session_state.auth_user = curr_user
-            st.rerun()
+    action_col, logout_col = st.columns([1.1, 1.1], gap="small")
     with action_col:
         if u_role == "Admin":
             if st.button("📁 Upload", key="nav_upload_docs_btn", type="primary", use_container_width=True, help="Knowledge Base"):
@@ -223,6 +216,18 @@ with nav_auth_col:
             if st.button("💬 Ask AI", key="nav_ask_btn", type="primary", use_container_width=True, help="AI Chatbot"):
                 st.session_state.page = "AI Chatbot"
                 st.rerun()
+    with logout_col:
+        if st.button("🚪 Log Out", key="nav_top_logout_btn", use_container_width=True, help="Sign out of your session"):
+            token = st.session_state.get("session_token")
+            if token:
+                revoke_session(token)
+            st.session_state.auth_user = None
+            st.session_state.session_token = None
+            st.session_state.pending_auth = None
+            if "session_token" in st.query_params:
+                del st.query_params["session_token"]
+            st.session_state.auth_view = "login"
+            st.rerun()
 
 st.markdown('</div></div>', unsafe_allow_html=True)
 
@@ -252,20 +257,6 @@ with st.sidebar:
         </div>
     </div>
     """), unsafe_allow_html=True)
-
-    # 1-Click Role Switch for instant evaluation
-    st.markdown("<div style='font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;'>Role Switcher (Evaluation):</div>", unsafe_allow_html=True)
-    auth_c1, auth_c2 = st.columns(2, gap="small")
-    with auth_c1:
-        if st.button("🎓 Student Mode", use_container_width=True, key="quick_student_btn"):
-            curr_user["role"] = "Student"
-            st.session_state.auth_user = curr_user
-            st.rerun()
-    with auth_c2:
-        if st.button("🛡️ Admin Mode", use_container_width=True, key="quick_admin_btn"):
-            curr_user["role"] = "Admin"
-            st.session_state.auth_user = curr_user
-            st.rerun()
 
     # Navigation shortcuts in sidebar
     st.markdown("<div style='font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-top:12px; margin-bottom:6px;'>Account Views:</div>", unsafe_allow_html=True)

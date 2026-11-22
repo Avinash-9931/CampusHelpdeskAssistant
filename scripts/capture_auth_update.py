@@ -1,10 +1,9 @@
 """
-Capture screenshots of the new Google Email OTP and Account Creation flows.
+Capture screenshots of the new Google Email OTP, Account Creation flows, Top Nav Logout, and Clean UI.
 """
 
 import time
 import sys
-import re
 import shutil
 from pathlib import Path
 
@@ -13,6 +12,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from playwright.sync_api import sync_playwright
 from auth.db import get_db_connection
+from auth.session import create_user_session
 
 SCREENSHOTS_DIR = PROJECT_ROOT / "docs" / "screenshots"
 SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -61,37 +61,32 @@ def run():
         p_create = SCREENSHOTS_DIR / "00_login_page_create.png"
         page.screenshot(path=str(p_create), full_page=True)
 
-        # Switch back to Tab 0 for testing Google / Email OTP flow
-        print("Testing Google / Email OTP flow...")
-        st_tabs.nth(0).click()
-        time.sleep(1)
+        # Now authenticate with a valid session to capture Home and Top Nav Logout button
+        print("Creating authenticated session for Admin...")
+        admin_session = create_user_session("admin", ip_address="127.0.0.1")
 
-        page.fill("input[aria-label='Google / Campus Email Address']", "test_student@campus.edu")
-        page.click("button:has-text('Send Verification Code to Email')")
+        print("Navigating to Home with session token...")
+        page.goto(f"http://localhost:8501/?session_token={admin_session}&page=Home", wait_until="networkidle")
         time.sleep(3)
 
-        print("Capturing 00_otp_verification.png...")
-        p_otp = SCREENSHOTS_DIR / "00_otp_verification.png"
-        page.screenshot(path=str(p_otp), full_page=True)
+        print("Capturing 01_home_page.png showing top nav with Log Out button...")
+        p_home = SCREENSHOTS_DIR / "01_home_page.png"
+        page.screenshot(path=str(p_home), full_page=True)
 
-        # Extract OTP and verify
-        content = page.content()
-        match = re.search(r'verification code is:\s*<strong[^>]*>(\d{6})</strong>', content, re.IGNORECASE)
-        if not match:
-            match = re.search(r'(\d{6})', content)
+        print("Navigating to AI Chatbot page...")
+        page.click("button:has-text('AI Chatbot')")
+        time.sleep(3)
+        p_chat = SCREENSHOTS_DIR / "02_chatbot_with_sources.png"
+        page.screenshot(path=str(p_chat), full_page=True)
 
-        if match:
-            code = match.group(1)
-            print(f"Submitting OTP code: {code}")
-            page.fill("input[aria-label='Enter 6-Digit Code']", code)
-            page.click("button:has-text('Verify Code & Sign In')")
-            time.sleep(4)
-
-            # Capture Chatbot Page after login
-            print("Capturing 02_chatbot_with_sources.png...")
-            p_chat = SCREENSHOTS_DIR / "02_chatbot_with_sources.png"
-            page.screenshot(path=str(p_chat), full_page=True)
-            print("Login and navigation verified successfully!")
+        # Now test clicking the Log Out button in the top navigation bar!
+        print("Clicking top navigation Log Out button...")
+        logout_btn = page.locator("button:has-text('Log Out')").first
+        if logout_btn.count() > 0:
+            logout_btn.click()
+            time.sleep(3)
+            print("Successfully logged out! Returned to Login Portal.")
+            page.screenshot(path=str(SCREENSHOTS_DIR / "00_after_logout.png"), full_page=True)
 
         browser.close()
 

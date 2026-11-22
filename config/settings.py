@@ -47,7 +47,7 @@ MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "Campus Helpdesk Security").strip()
 OTP_TTL_SECONDS = int(os.getenv("OTP_TTL_SECONDS", "300"))
 SESSION_TTL_MINUTES = int(os.getenv("SESSION_TTL_MINUTES", "480"))
 SESSION_IDLE_TIMEOUT_MINUTES = int(os.getenv("SESSION_IDLE_TIMEOUT_MINUTES", "30"))
-DEV_MODE = os.getenv("DEV_MODE", "true").strip().lower() in ("true", "1", "yes")
+DEV_MODE = os.getenv("DEV_MODE", "false").strip().lower() in ("true", "1", "yes")
 
 # Model & API settings
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
