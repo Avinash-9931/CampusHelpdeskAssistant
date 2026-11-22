@@ -14,6 +14,18 @@
 
 ---
 
+## 🌐 Live Deployment & Examiner Quick Access
+
+| Resource | Access Details |
+| :--- | :--- |
+| **Live Public URL** | [https://telescope-dates-shipments-aud.trycloudflare.com](https://telescope-dates-shipments-aud.trycloudflare.com) |
+| **Faculty / Examiner Login** | Click **"⚡ 1-Click Faculty Examiner Login"** on the login screen, or use ID: `faculty` / Password: `faculty123` |
+| **Student Test Account** | ID: `student` / Password: `student123` |
+| **Self-Service Registration** | Campus email registration (`@bennett.edu.in`) with live 6-digit OTP delivery |
+| **GitHub Repository** | [https://github.com/Avinash-9931/CampusHelpdeskAssistant](https://github.com/Avinash-9931/CampusHelpdeskAssistant) |
+
+---
+
 ## 📌 Executive Summary & Objective
 
 The **AI-Powered Campus Helpdesk Assistant** is an enterprise-grade Retrieval-Augmented Generation (RAG) system engineered to answer student inquiries strictly and exclusively using official university policy PDF documents. 
@@ -162,17 +174,32 @@ Open your browser at `http://localhost:8501`.
 
 ## 🧪 Running Automated Tests
 
-### 1. Pytest Unit, Integration & UI Test Suite
-Execute the full pytest suite (35 unit, integration, and UI tests):
+### 1. Pytest Unit, Integration, Auth & UI Test Suite
+Execute the full pytest suite (67 passing unit, integration, authentication, and UI tests):
 ```bash
 pytest tests/ -v
 ```
-**Test Coverage Includes:**
+**Test Coverage Includes (67 Tests):**
+- `test_auth.py`: PBKDF2 password hashing, timing-safe verification, account lockout (5 failed attempts), single-use OTP replay rejection, OTP expiration, rate limits, session revocation on logout, and role assignment security.
 - `test_pdf_processor.py`: Extension checks, 0-byte detection, 15MB limits, content hashing, scanned PDF detection, and password-protected PDF rejection.
 - `test_retriever.py`: Lexical index construction, TF-IDF cosine similarity, similarity threshold gating, document deletion, and state persistence.
 - `test_prompt_rules.py`: Loading of `v1`, `v2`, `v3`, and `final` prompts; verification of XML context delimiters; prompt injection defense instructions; and citation requirements.
 - `test_chatbot.py`: Query sanitization, follow-up resolution, offline fallback execution, out-of-domain refusal routing, and prompt injection immunity.
-- `test_ui_app.py`: Programmatic end-to-end verification of all 5 Streamlit application pages (Home, AI Chatbot, Knowledge Base, Test / Evaluation, About Project).
+- `test_integration_hardening.py`: End-to-end integration boundaries, error recovery, and concurrency resilience.
+- `test_ui_app.py`: Programmatic end-to-end verification of all Streamlit application pages with AppTest.
+
+---
+
+## 🚀 One-Command Live Deployment
+
+The project includes an automated deployment script that spins up the Streamlit server and provisions an encrypted HTTPS Cloudflare Tunnel:
+
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+The script automatically downloads `cloudflared` if not present, starts Streamlit in headless mode on port 8501, establishes an HTTP/2 tunnel over standard port 443, and generates a public live URL accessible from any mobile or desktop browser without opening router ports.
 
 ### 2. Empirical Evaluation Suite
 Run the 12 evaluation test cases and regenerate `evaluation_report.md`:
