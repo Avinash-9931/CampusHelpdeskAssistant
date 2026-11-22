@@ -101,7 +101,6 @@ def render_login_page():
                                     "user": user,
                                     "email": cleaned_email,
                                     "masked_email": mask_email(cleaned_email),
-                                    "raw_otp_dev": raw_otp if settings.DEV_MODE else None,
                                     "mail_sent": mail_success,
                                     "mail_note": mail_msg,
                                     "created_at": time.time()
@@ -171,7 +170,6 @@ def render_login_page():
                                     "user": user,
                                     "email": user_email,
                                     "masked_email": mask_email(user_email),
-                                    "raw_otp_dev": raw_otp if settings.DEV_MODE else None,
                                     "mail_sent": mail_success,
                                     "mail_note": mail_msg,
                                     "created_at": time.time()
@@ -274,7 +272,6 @@ def render_login_page():
                                             "user": new_user,
                                             "email": cleaned_email,
                                             "masked_email": mask_email(cleaned_email),
-                                            "raw_otp_dev": raw_otp if settings.DEV_MODE else None,
                                             "mail_sent": mail_success,
                                             "mail_note": mail_msg,
                                             "created_at": time.time()

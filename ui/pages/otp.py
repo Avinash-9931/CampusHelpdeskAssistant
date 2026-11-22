@@ -24,7 +24,6 @@ def render_otp_page():
     user = pending["user"]
     user_id = user["id"]
     masked_email = pending.get("masked_email", "your email")
-    dev_otp = pending.get("raw_otp_dev")
     mail_sent = pending.get("mail_sent", False)
     mail_note = pending.get("mail_note", "")
 
@@ -44,20 +43,8 @@ def render_otp_page():
         """, unsafe_allow_html=True)
 
         with st.container(border=True):
-            # If Dev Mode is active and SMTP is not configured, show prominent amber box
-            if settings.DEV_MODE and dev_otp:
-                st.markdown(f"""
-                <div style="background:#FFFBEB; border:1px solid #FCD34D; border-radius:8px; padding:12px 14px; margin-bottom:16px;">
-                    <div style="font-size:11px; font-weight:700; color:#B45309; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">
-                        DEV MODE: Email not configured
-                    </div>
-                    <div style="font-size:13px; color:#92400E;">
-                        Your verification code is: <strong style="font-size:16px; font-family:monospace; letter-spacing:2px; background:#FEF3C7; padding:2px 8px; border-radius:4px;">{dev_otp}</strong>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            elif not mail_sent:
-                st.warning(f"Could not dispatch email: {mail_note}. If in testing mode, enable DEV_MODE in .env.")
+            if not mail_sent and mail_note:
+                st.error(f"Could not dispatch email: {mail_note}")
 
             with st.form("otp_submit_form", clear_on_submit=False):
                 entered_otp = st.text_input(
@@ -101,8 +88,7 @@ def render_otp_page():
                     if ok:
                         user_email = user.get("email", "")
                         send_otp_email(user_email, code_or_err, user_name=user.get("name", "Student"))
-                        st.session_state.pending_auth["raw_otp_dev"] = code_or_err if settings.DEV_MODE else None
-                        st.success("A new verification code has been dispatched.")
+                        st.success("A new verification code has been dispatched to your email.")
                         st.rerun()
                     else:
                         if retry_after > 0:
