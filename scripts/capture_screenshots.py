@@ -141,19 +141,12 @@ def run_capture():
         print("Capturing 07_audit_log.png...")
         page.screenshot(path=str(SCREENSHOTS_DIR / "07_audit_log.png"), full_page=True)
 
-        # 10. Evaluation (Admin)
-        print("Navigating to Test / Evaluation...")
-        page.goto(f"http://localhost:8501/?{token_param}page=Test+%2F+Evaluation", wait_until="networkidle")
+        # 10. My Conversation History
+        print("Navigating to My History...")
+        page.goto(f"http://localhost:8501/?{token_param}page=My+History", wait_until="networkidle")
         time.sleep(3)
-        print("Capturing 04_evaluation.png...")
-        page.screenshot(path=str(SCREENSHOTS_DIR / "04_evaluation.png"), full_page=True)
-
-        # 11. About Project
-        print("Navigating to About Project...")
-        page.goto(f"http://localhost:8501/?{token_param}page=About+Project", wait_until="networkidle")
-        time.sleep(3)
-        print("Capturing 05_about_project.png...")
-        page.screenshot(path=str(SCREENSHOTS_DIR / "05_about_project.png"), full_page=True)
+        print("Capturing 05_my_history.png...")
+        page.screenshot(path=str(SCREENSHOTS_DIR / "05_my_history.png"), full_page=True)
 
         # 12. Student Restricted Access Demo
         print("Switching role to Student to demonstrate RBAC restriction...")

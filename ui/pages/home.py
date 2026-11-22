@@ -93,8 +93,8 @@ def render_home_page():
                     st.session_state.page = "Knowledge Base"
                     st.rerun()
             else:
-                if st.button("ℹ️ About project", use_container_width=True, key="hero_cta_about"):
-                    st.session_state.page = "About Project"
+                if st.button("💬 My Chat History", use_container_width=True, key="hero_cta_history"):
+                    st.session_state.page = "My History"
                     st.rerun()
 
     with h_col_right:

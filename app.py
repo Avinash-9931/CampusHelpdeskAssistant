@@ -158,21 +158,19 @@ if not curr_user:
 # ==============================================================================
 u_role = curr_user.get("role", "Admin")
 
-# Core pages matching all automated test expectations without horizontal crowding
+# Core pages matching clean, uncluttered navigation
 if u_role == "Admin":
     NAV_PAGES = [
         "Home",
         "AI Chatbot",
         "Knowledge Base",
-        "Test / Evaluation",
-        "About Project"
+        "My History"
     ]
 else:
     NAV_PAGES = [
         "Home",
         "AI Chatbot",
-        "My History",
-        "About Project"
+        "My History"
     ]
 
 # Top Nav Header Container
@@ -185,9 +183,9 @@ with nav_brand_col:
 with nav_links_col:
     # Top navigation pill buttons with proper spacing
     if u_role == "Admin":
-        btn_cols = st.columns([1.0, 1.25, 1.45, 1.55, 1.3], gap="small")
+        btn_cols = st.columns([1.0, 1.3, 1.5, 1.3], gap="small")
     else:
-        btn_cols = st.columns([1.0, 1.3, 1.3, 1.3], gap="small")
+        btn_cols = st.columns([1.0, 1.3, 1.3], gap="small")
 
     for idx, page_name in enumerate(NAV_PAGES):
         is_active = (st.session_state.page == page_name)
@@ -319,13 +317,29 @@ with st.sidebar:
         """, unsafe_allow_html=True)
         st.session_state.prefer_semantic = False
 
-    # Prompt Template Selection
-    st.session_state.active_prompt_version = st.selectbox(
-        "Prompt Template",
-        options=["final", "v3", "v2", "v1"],
-        format_func=lambda x: f"Prompt: {x.upper()} {'(Optimized)' if x=='final' else ''}",
-        index=0
+    # Email OTP & SMTP Configuration
+    st.markdown("---")
+    st.markdown(f"### {render_icon('info', size=16, color='#2F5BEA')} Email OTP Settings", unsafe_allow_html=True)
+    current_smtp_user = settings.SMTP_USER
+    smtp_input = st.text_input(
+        "Sender Gmail Account",
+        value=current_smtp_user,
+        placeholder="e.g. yourname@gmail.com",
+        help="Google account associated with App Password for sending real 6-digit verification emails."
     )
+    if smtp_input != current_smtp_user:
+        settings.SMTP_USER = smtp_input.strip()
+        try:
+            if settings.ENV_PATH.exists():
+                env_text = settings.ENV_PATH.read_text()
+                if "SMTP_USER=" in env_text:
+                    env_text = re.sub(r'SMTP_USER=.*', f'SMTP_USER={smtp_input.strip()}', env_text)
+                else:
+                    env_text += f'\nSMTP_USER={smtp_input.strip()}\n'
+                settings.ENV_PATH.write_text(env_text)
+        except Exception:
+            pass
+        st.rerun()
 
     st.markdown("---")
     st.markdown(clean_html(f"""
@@ -349,14 +363,10 @@ elif current_page == "My History":
     render_history_page()
 elif current_page == "Knowledge Base":
     render_knowledge_base_page()
-elif current_page == "Test / Evaluation":
-    render_evaluation_page()
 elif current_page == "User Admin" or current_page == "Users":
     render_users_page()
 elif current_page == "Audit Log":
     render_audit_page()
-elif current_page == "About Project":
-    render_about_page()
 else:
     st.session_state.page = "Home"
     render_home_page()
