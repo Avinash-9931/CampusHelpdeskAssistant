@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 import pytest
 
 from core.auth import authenticate_user, USERS_DB
+from auth.db import init_db
 from auth.security import (
     hash_password,
     verify_password,
@@ -434,5 +435,23 @@ def test_forgot_password_otp_reset_flow():
     new_ok, _, authed_user = authenticate_credentials(uid, new_pwd)
     assert new_ok
     assert authed_user["id"] == uid
+
+
+def test_faculty_and_guest_evaluator_credentials():
+    """Verifies that Faculty Examiner and Guest accounts are seeded and authenticate with Admin privileges."""
+    init_db()
+    
+    # 1. Faculty Examiner credentials
+    ok, msg, faculty_user = authenticate_credentials("faculty", "faculty123")
+    assert ok, f"Faculty authentication failed: {msg}"
+    assert faculty_user["role"] == "Admin"
+    assert faculty_user["id"] == "faculty"
+
+    # 2. Guest Evaluator credentials
+    g_ok, g_msg, guest_user = authenticate_credentials("guest", "guest123")
+    assert g_ok, f"Guest authentication failed: {g_msg}"
+    assert guest_user["role"] == "Admin"
+    assert guest_user["id"] == "guest"
+
 
 

@@ -26,8 +26,8 @@ LOGO_GLYPH_SVG = '''<svg width="34" height="34" viewBox="0 0 34 34" fill="none" 
 LOGO_FULL_SVG = f'''<div style="display:flex; align-items:center; gap:10px;">
   {LOGO_GLYPH_SVG}
   <div style="display:flex; flex-direction:column;">
-    <span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:16px; font-weight:800; color:#0D0F14; letter-spacing:-0.02em; line-height:1.15;">campus<span style="color:#2F5BEA;">helpdesk</span></span>
-    <span style="font-size:10px; font-weight:600; color:#667085; letter-spacing:0.02em; text-transform:uppercase;">Official Assistant</span>
+    <span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:16px; font-weight:800; color:#FFFFFF; letter-spacing:-0.02em; line-height:1.15;">campus<span style="color:#3B82F6;">helpdesk</span></span>
+    <span style="font-size:10px; font-weight:600; color:#94A3B8; letter-spacing:0.02em; text-transform:uppercase;">Official Assistant</span>
   </div>
 </div>'''
 

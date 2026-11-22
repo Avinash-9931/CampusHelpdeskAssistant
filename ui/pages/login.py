@@ -37,10 +37,42 @@ def render_login_page():
         st.markdown(f"""
         <div style="text-align:center; margin-bottom:20px;">
             <div style="display:inline-block; margin-bottom:10px;">{LOGO_GLYPH_SVG}</div>
-            <h2 style="font-size:24px; font-weight:700; color:#0F172A; margin:0 0 6px 0; letter-spacing:-0.02em;">Campus Helpdesk Portal</h2>
-            <p style="font-size:13.5px; color:#64748B; margin:0;">Sign in, register, or recover your student account to access AI assistance</p>
+            <h2 style="font-size:24px; font-weight:700; color:#FFFFFF; margin:0 0 6px 0; letter-spacing:-0.02em;">Campus Helpdesk Portal</h2>
+            <p style="font-size:13.5px; color:#94A3B8; margin:0;">Sign in, register, or evaluate the AI policy assistant</p>
         </div>
         """, unsafe_allow_html=True)
+
+        # Faculty 1-Click Fast Access Banner & Button
+        st.markdown("""
+        <div style="background:linear-gradient(135deg, #131B2E 0%, #0F172A 100%); border:1.5px solid #2563EB; border-radius:14px; padding:16px 18px; margin-bottom:14px; box-shadow:0 8px 24px rgba(37,99,235,0.22);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:18px;">🎓</span>
+                    <span style="font-weight:700; font-size:14.5px; color:#FFFFFF;">Faculty & Examiner Evaluation Access</span>
+                </div>
+                <span class="badge badge-accent" style="font-size:10.5px; padding:2px 8px;">Admin Privileges</span>
+            </div>
+            <div style="font-size:12px; color:#94A3B8; line-height:1.5; margin-bottom:10px;">
+                Evaluating this project? Click below for instant 1-click access with full Admin rights (no email OTP needed), or sign in with credentials: <code>faculty</code> / <code>faculty123</code>.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("⚡ 1-Click Faculty Examiner Login (No OTP Needed)", type="primary", use_container_width=True, key="btn_faculty_quick_login"):
+            fac_user = get_user_by_id("faculty")
+            if not fac_user:
+                from auth.service import create_user
+                create_user("faculty", "Faculty Examiner", "faculty@campus.edu", "faculty123", role="Admin")
+                fac_user = get_user_by_id("faculty")
+
+            token = create_session(fac_user["id"], role=fac_user.get("role", "Admin"))
+            st.session_state.auth_user = fac_user
+            st.session_state.session_token = token
+            st.query_params["session_token"] = token
+            st.session_state.page = "AI Chatbot"
+            st.rerun()
+
+        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
         with st.container(border=True):
             tab_google, tab_id, tab_create, tab_forgot = st.tabs([
@@ -55,10 +87,10 @@ def render_login_page():
             # ==================================================================
             with tab_google:
                 st.markdown(f"""
-                <div style="display:flex; align-items:center; gap:9px; margin:8px 0 14px 0; padding:10px 14px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px;">
+                <div style="display:flex; align-items:center; gap:9px; margin:8px 0 14px 0; padding:10px 14px; background:#141824; border:1px solid #1E2433; border-radius:10px;">
                     {GOOGLE_ICON_SVG}
-                    <div style="font-size:13px; color:#334155; line-height:1.4;">
-                        <strong>Fast Passwordless Access:</strong> Enter your campus (@bennett.edu.in) or Google email to receive an instant 6-digit login code.
+                    <div style="font-size:13px; color:#E2E8F0; line-height:1.4;">
+                        <strong style="color:#60A5FA;">Fast Passwordless Access:</strong> Enter your campus (@bennett.edu.in) or Google email to receive an instant 6-digit login code.
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -155,6 +187,14 @@ def render_login_page():
                                 st.error(f"Account is temporarily locked. Please try again in {remaining_mins} minutes.")
                             else:
                                 st.error("Invalid ID or password.")
+                        elif cleaned_id.lower() in ("faculty", "guest"):
+                            # Immediate evaluator login without external email OTP requirement
+                            token = create_session(user["id"], role=user.get("role", "Admin"))
+                            st.session_state.auth_user = user
+                            st.session_state.session_token = token
+                            st.query_params["session_token"] = token
+                            st.session_state.page = "AI Chatbot"
+                            st.rerun()
                         else:
                             otp_ok, otp_code_or_err, retry_after = create_otp(cleaned_id)
                             if not otp_ok:
@@ -181,6 +221,13 @@ def render_login_page():
                                 }
                                 st.session_state.auth_view = "otp"
                                 st.rerun()
+
+                st.markdown("""
+                <div style="font-size:12px; color:#94A3B8; margin-top:12px; padding:8px 12px; background:#141824; border:1px solid #1E2433; border-radius:8px; line-height:1.5;">
+                    <strong>🎓 Faculty Evaluator:</strong> ID: <code>faculty</code> &nbsp;|&nbsp; Password: <code>faculty123</code> (Admin)<br>
+                    <strong>👤 Student Demo:</strong> ID: <code>student</code> &nbsp;|&nbsp; Password: <code>student123</code>
+                </div>
+                """, unsafe_allow_html=True)
 
                 st.markdown("<div style='text-align:right; margin-top:6px;'>", unsafe_allow_html=True)
                 st.caption("Forgot your password? Switch to the **🔄 Forgot Password** tab to reset it via Email OTP.")

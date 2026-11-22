@@ -1,16 +1,15 @@
 """
 Visual styles and design tokens for Campus Helpdesk Assistant.
-Faithfully recreates the visual language of the reference Dribbble SaaS landing page:
-- Soft neutral background canvas (#E9E7E6)
-- Main application sheet (28px radius, 1px white border, soft drop shadow) with smooth multi-stop gradient:
-  warm peach and cream at left/center, fading to periwinkle blue at top right, and white at bottom.
-- Floating pill navigation bar with blur backdrop
-- Dashed selection boxes with corner handles and animated cursor glyph
-- Floating skeleton and metric cards with subtle bobbing motion
-- Original inline SVG robot mascot and chat card preview
-- Three-column feature strip with dashed borders and flowing connector arrows
-- High-contrast, crystal-clear chat input bar with dark text on white
-- Full RBAC and dark/light mode token integration
+Faithfully recreates the visual language of the reference Calley Dark AI Agent SaaS Dashboard:
+- Deep obsidian dark background canvas (#0B0E14)
+- Main application sheet (#0E121B, 20px radius, 1px #1E2433 border, soft shadow)
+- Calley top breadcrumb navigation (Dashboard > AI Agent)
+- Royal blue announcement banner (#1D4ED8 to #2563EB gradient)
+- Dark conversational feed with user and agent cards, avatars, and timestamps
+- Sleek horizontal quick inquiry chips dock
+- High-contrast dark chat input dock (#141824, 1.5px border, blue send button)
+- Faculty 1-click evaluator login cards
+- Full RBAC integration and responsive layout
 """
 
 GLOBAL_CSS = """
@@ -18,55 +17,55 @@ GLOBAL_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* =============================================================================
-   1. DESIGN TOKENS & SYSTEM VARIABLES
+   1. DESIGN TOKENS & SYSTEM VARIABLES (CALLEY DARK SAAS AESTHETIC)
    ============================================================================= */
 :root {
-    --bg-canvas: #E9E7E6;
-    --sheet-bg: radial-gradient(circle at 18% 28%, #FDE4D4 0%, rgba(253, 228, 212, 0) 50%),
-                radial-gradient(circle at 88% 16%, #C3D5FB 0%, rgba(195, 213, 251, 0) 48%),
-                linear-gradient(180deg, #F8F5F2 0%, #FFFFFF 100%);
-    --surface: #FFFFFF;
-    --surface-secondary: #F1F5F9;
-    --surface-hover: #F8FAFC;
+    --bg-canvas: #0B0E14;
+    --sheet-bg: #0E121B;
+    --surface: #131722;
+    --surface-card: #151922;
+    --surface-secondary: #181E2C;
+    --surface-hover: #1E2536;
     
-    --border: #E2E8F0;
-    --border-dashed: rgba(148, 163, 184, 0.45);
-    --border-focus: #2F5BEA;
+    --border: #1E2433;
+    --border-subtle: #232B3E;
+    --border-dashed: rgba(148, 163, 184, 0.22);
+    --border-focus: #2563EB;
     
-    --text-main: #0F172A;
-    --text-muted: #64748B;
-    --text-light: #94A3B8;
+    --text-main: #F8FAFC;
+    --text-muted: #94A3B8;
+    --text-light: #64748B;
     
-    --accent: #2F5BEA;
-    --accent-hover: #1E40AF;
-    --accent-soft: rgba(47, 91, 234, 0.08);
-    --accent-border: rgba(47, 91, 234, 0.2);
+    --accent: #2563EB;
+    --accent-hover: #1D4ED8;
+    --accent-soft: rgba(37, 99, 235, 0.16);
+    --accent-border: rgba(37, 99, 235, 0.38);
     
     --success: #10B981;
-    --success-bg: #ECFDF5;
-    --success-border: #A7F3D0;
-    --success-text: #065F46;
+    --success-bg: rgba(16, 185, 129, 0.14);
+    --success-border: rgba(16, 185, 129, 0.3);
+    --success-text: #34D399;
     
     --warning: #F59E0B;
-    --warning-bg: #FFFBEB;
-    --warning-border: #FDE68A;
-    --warning-text: #92400E;
+    --warning-bg: rgba(245, 158, 11, 0.14);
+    --warning-border: rgba(245, 158, 11, 0.3);
+    --warning-text: #FBBF24;
     
     --danger: #EF4444;
-    --danger-bg: #FEF2F2;
-    --danger-border: #FECACA;
-    --danger-text: #991B1B;
+    --danger-bg: rgba(239, 68, 68, 0.14);
+    --danger-border: rgba(239, 68, 68, 0.3);
+    --danger-text: #F87171;
     
-    --radius-xl: 28px;
-    --radius-lg: 20px;
-    --radius-md: 12px;
-    --radius-sm: 8px;
+    --radius-xl: 22px;
+    --radius-lg: 16px;
+    --radius-md: 10px;
+    --radius-sm: 6px;
     --radius-pill: 9999px;
     
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-    --shadow-lg: 0 14px 34px -4px rgba(15, 23, 42, 0.08);
-    --shadow-sheet: 0 24px 64px rgba(15, 23, 42, 0.08);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 14px 34px rgba(0, 0, 0, 0.55);
+    --shadow-sheet: 0 20px 60px rgba(0, 0, 0, 0.65);
     
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
@@ -97,12 +96,12 @@ header[data-testid="stHeader"] {
 /* Main App Sheet */
 .main .block-container {
     background: var(--sheet-bg) !important;
-    border: 1px solid rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid var(--border) !important;
     border-radius: var(--radius-xl) !important;
     box-shadow: var(--shadow-sheet) !important;
-    padding: 24px 32px 48px 32px !important;
+    padding: 20px 28px 40px 28px !important;
     max-width: 1240px !important;
-    margin: 16px auto 32px auto !important;
+    margin: 12px auto 28px auto !important;
     position: relative;
 }
 
@@ -111,19 +110,19 @@ header[data-testid="stHeader"] {
    ============================================================================= */
 .nav-pill-wrapper {
     position: sticky;
-    top: 12px;
+    top: 10px;
     z-index: 999;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .nav-pill-container {
-    background: rgba(255, 255, 255, 0.94);
+    background: rgba(14, 18, 27, 0.94);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--border);
     border-radius: var(--radius-pill);
-    padding: 8px 18px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+    padding: 7px 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 /* =============================================================================
@@ -136,10 +135,10 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: -0.02em !important;
 }
 
-h1 { font-size: 32px !important; line-height: 1.2 !important; }
-h2 { font-size: 24px !important; line-height: 1.25 !important; }
-h3 { font-size: 18px !important; line-height: 1.35 !important; }
-h4 { font-size: 15px !important; line-height: 1.4 !important; }
+h1 { font-size: 30px !important; line-height: 1.2 !important; }
+h2 { font-size: 22px !important; line-height: 1.25 !important; }
+h3 { font-size: 17px !important; line-height: 1.35 !important; }
+h4 { font-size: 14.5px !important; line-height: 1.4 !important; }
 
 p, span, div {
     font-family: var(--font-sans);
@@ -149,7 +148,7 @@ p, span, div {
 code {
     font-family: var(--font-mono) !important;
     background-color: var(--surface-secondary) !important;
-    color: var(--accent) !important;
+    color: #60A5FA !important;
     padding: 2px 6px !important;
     border-radius: 4px !important;
     font-size: 0.88em !important;
@@ -157,77 +156,86 @@ code {
 }
 
 /* =============================================================================
-   5. BUTTONS & PILL CONTROLS
+   5. BUTTONS & PILL CONTROLS (CALLEY SAAS THEME)
    ============================================================================= */
-/* All Streamlit Buttons default to smooth rounded pills */
 div.stButton > button {
     font-family: var(--font-sans) !important;
     font-weight: 600 !important;
     font-size: 12.5px !important;
     border-radius: var(--radius-pill) !important;
-    padding: 7px 12px !important;
+    padding: 7px 14px !important;
     white-space: nowrap !important;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    border: 1px solid var(--border) !important;
-    background-color: var(--surface) !important;
+    border: 1px solid var(--border-subtle) !important;
+    background-color: var(--surface-card) !important;
     color: var(--text-main) !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
 }
 
 div.stButton > button:hover {
-    border-color: #CBD5E1 !important;
-    background-color: #F8FAFC !important;
+    border-color: #3B82F6 !important;
+    background-color: var(--surface-hover) !important;
+    color: #FFFFFF !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
 }
 
 div.stButton > button:active {
     transform: scale(0.98) !important;
 }
 
-/* Primary Button: Solid Vibrant Blue Pill with Soft Glow Shadow */
+/* Primary Button: Vibrant Royal Blue Pill */
 div.stButton > button[type="primary"] {
     background-color: var(--accent) !important;
     color: #FFFFFF !important;
     border-color: var(--accent) !important;
-    box-shadow: 0 4px 14px rgba(47, 91, 234, 0.3) !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
 }
 
 div.stButton > button[type="primary"]:hover {
     background-color: var(--accent-hover) !important;
     border-color: var(--accent-hover) !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 24px rgba(47, 91, 234, 0.42) !important;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45) !important;
 }
 
 /* =============================================================================
-   6. HERO SECTION: DASHED SELECTION BOX & FLOATING CARDS
+   6. CALLEY DASHBOARD HEADER, BREADCRUMB & ANNOUNCEMENT BANNER
    ============================================================================= */
+.calley-breadcrumb-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
 .hero-eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: #2F5BEA;
+    color: #60A5FA;
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.04em;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
 }
 
 .hero-headline-wrapper {
     display: inline-block;
     position: relative;
     padding: 16px 28px;
-    margin: 6px auto 16px auto;
-    border: 1.5px dashed rgba(15, 23, 42, 0.22);
+    margin: 6px auto 14px auto;
+    border: 1.5px dashed rgba(96, 165, 250, 0.4);
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.45);
+    background: rgba(19, 23, 34, 0.85);
 }
 
 .hero-headline {
-    font-size: clamp(34px, 5vw, 54px) !important;
+    font-size: clamp(32px, 5vw, 50px) !important;
     font-weight: 800 !important;
-    color: #0D0F14 !important;
+    color: #FFFFFF !important;
     letter-spacing: -0.035em !important;
     line-height: 1.15 !important;
     margin: 0 !important;
@@ -237,8 +245,8 @@ div.stButton > button[type="primary"]:hover {
     position: absolute;
     width: 7px;
     height: 7px;
-    background: #FFFFFF;
-    border: 1.5px solid #0F172A;
+    background: #2563EB;
+    border: 1.5px solid #FFFFFF;
     border-radius: 2px;
 }
 .corner-handle.tl { top: -4px; left: -4px; }
@@ -246,144 +254,199 @@ div.stButton > button[type="primary"]:hover {
 .corner-handle.bl { bottom: -4px; left: -4px; }
 .corner-handle.br { bottom: -4px; right: -4px; }
 
-/* Floating Cards bobbing animation */
-@keyframes bobSlow {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-}
-
-@keyframes bobSlowReverse {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(7px); }
-}
-
 .floating-card-left {
-    background: #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.95);
+    background: #141824;
+    border: 1px solid #1E2433;
     border-radius: 16px;
     padding: 14px 18px;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-    animation: bobSlow 6s ease-in-out infinite;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
 }
 
 .floating-card-right {
-    background: #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.95);
+    background: #141824;
+    border: 1px solid #1E2433;
     border-radius: 16px;
     padding: 14px 18px;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-    animation: bobSlowReverse 5.5s ease-in-out infinite;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
 }
 
-/* Animated Hand Cursor Ripple */
-@keyframes ripplePulse {
-    0% { r: 6; opacity: 0.8; }
-    100% { r: 16; opacity: 0; }
-}
-.cursor-ripple {
-    animation: ripplePulse 1.8s ease-out infinite;
-}
-
-/* =============================================================================
-   7. THREE-COLUMN FEATURE STRIP & FLOWING CONNECTOR ARROWS
-   ============================================================================= */
 .feature-strip-card {
     border: 1.5px dashed var(--border-dashed);
     border-radius: 24px;
-    background: rgba(255, 255, 255, 0.72);
+    background: rgba(20, 24, 36, 0.75);
     backdrop-filter: blur(10px);
     padding: 24px 20px;
     height: 100%;
-    position: relative;
-    transition: all 0.2s ease;
-}
-
-.feature-strip-card:hover {
-    border-color: #2F5BEA;
-    background: rgba(255, 255, 255, 0.9);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
 }
 
 .center-grid-container {
     border: 1.5px dashed var(--border-dashed);
     border-radius: 24px;
-    background: rgba(255, 255, 255, 0.88);
-    background-image: radial-gradient(rgba(148, 163, 184, 0.28) 1.2px, transparent 1.2px);
+    background: rgba(20, 24, 36, 0.85);
+    background-image: radial-gradient(rgba(148, 163, 184, 0.15) 1.2px, transparent 1.2px);
     background-size: 16px 16px;
     padding: 24px 20px;
     height: 100%;
-    position: relative;
-    transition: all 0.2s ease;
 }
 
-.center-grid-container:hover {
-    border-color: #2F5BEA;
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+.calley-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-light);
 }
 
-/* Flowing connector arrows stroke dash */
-@keyframes strokeDashFlow {
-    to {
-        stroke-dashoffset: -16;
-    }
-}
-.arrow-dash-flow {
-    animation: strokeDashFlow 1.2s linear infinite;
+.calley-breadcrumb .sep {
+    color: #475569;
+    font-size: 11px;
 }
 
-/* =============================================================================
-   8. CHAT INTERFACE & INPUT BAR (HIGH-CONTRAST & NO RAW CODEBLOCKS)
-   ============================================================================= */
-.chat-message-row {
-    margin-bottom: 18px;
-}
-
-.chat-bubble-user {
-    background: #2F5BEA;
+.calley-breadcrumb .active-item {
     color: #FFFFFF;
-    border-radius: 18px 18px 4px 18px;
-    padding: 14px 18px;
-    max-width: 80%;
-    box-shadow: 0 4px 16px rgba(47, 91, 234, 0.25);
-    font-size: 14.5px;
-    line-height: 1.55;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.chat-bubble-user * {
+.calley-announcement-banner {
+    background: linear-gradient(90deg, #1D4ED8 0%, #2563EB 100%);
+    border-radius: 12px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #FFFFFF;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.3);
+}
+
+.calley-announcement-banner * {
     color: #FFFFFF !important;
 }
 
-/* Assistant Card Container */
-[data-testid="stVerticalBlockBorderWrapper"] {
-    background-color: #FFFFFF !important;
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius-lg) !important;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
-    padding: 18px !important;
-    margin-bottom: 16px !important;
+.calley-chat-time-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 16px 0 20px 0;
+    position: relative;
+    text-align: center;
 }
 
-/* High-Contrast, Crystal-Clear Chat Input Box */
+.calley-chat-time-divider::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border);
+    z-index: 1;
+}
+
+.calley-chat-time-divider span {
+    background: var(--sheet-bg);
+    padding: 0 14px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-light);
+    position: relative;
+    z-index: 2;
+    letter-spacing: 0.03em;
+}
+
+/* =============================================================================
+   7. CHAT MESSAGE CARDS (CALLEY DARK SAAS AESTHETIC)
+   ============================================================================= */
+.calley-msg-user-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.calley-msg-assistant-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.calley-avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.calley-avatar-user {
+    background: #1E293B;
+    color: #93C5FD;
+    border: 1px solid #334155;
+}
+
+.calley-avatar-bot {
+    background: #1E3A8A;
+    color: #60A5FA;
+    border: 1px solid #2563EB;
+}
+
+.calley-msg-bubble-user {
+    background: #151922;
+    border: 1px solid #232B3A;
+    border-radius: 14px;
+    padding: 12px 18px;
+    max-width: 82%;
+    color: #F1F5F9;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.calley-msg-bubble-bot {
+    background: #182030;
+    border: 1px solid #25334D;
+    border-radius: 14px;
+    padding: 14px 20px;
+    max-width: 88%;
+    color: #F1F5F9;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+/* Assistant Card Container in Streamlit */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background-color: var(--surface-card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+    padding: 16px !important;
+    margin-bottom: 14px !important;
+}
+
+/* High-Contrast, Crystal-Clear Dark Chat Input Box */
 [data-testid="stChatInput"] {
-    background-color: #FFFFFF !important;
-    border-radius: var(--radius-pill) !important;
-    border: 1.5px solid #CBD5E1 !important;
-    box-shadow: 0 6px 24px rgba(15, 23, 42, 0.08) !important;
-    padding: 4px 8px !important;
+    background-color: #141824 !important;
+    border-radius: var(--radius-lg) !important;
+    border: 1.5px solid #232B3E !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45) !important;
+    padding: 4px 10px !important;
     transition: all 0.2s ease !important;
 }
 
 [data-testid="stChatInput"]:focus-within {
-    border-color: #2F5BEA !important;
-    box-shadow: 0 0 0 3px rgba(47, 91, 234, 0.22), 0 8px 30px rgba(15, 23, 42, 0.12) !important;
+    border-color: #2563EB !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25), 0 8px 30px rgba(0, 0, 0, 0.6) !important;
 }
 
 [data-testid="stChatInput"] textarea {
     font-family: var(--font-sans) !important;
-    font-size: 14.5px !important;
+    font-size: 14px !important;
     font-weight: 500 !important;
-    color: #0F172A !important;
+    color: #F8FAFC !important;
     background: transparent !important;
 }
 
@@ -394,7 +457,7 @@ div.stButton > button[type="primary"]:hover {
 }
 
 [data-testid="stChatInput"] button {
-    background-color: #2F5BEA !important;
+    background-color: #2563EB !important;
     color: #FFFFFF !important;
     border-radius: 50% !important;
     transition: transform 0.15s ease !important;
@@ -402,6 +465,71 @@ div.stButton > button[type="primary"]:hover {
 
 [data-testid="stChatInput"] button:hover {
     transform: scale(1.05) !important;
+    background-color: #1D4ED8 !important;
+}
+
+/* =============================================================================
+   8. STREAMLIT FORM CONTROLS & INPUTS (DARK MODE STYLING)
+   ============================================================================= */
+div[data-baseweb="input"] {
+    background-color: #141824 !important;
+    border: 1px solid #232B3E !important;
+    border-radius: var(--radius-md) !important;
+}
+
+div[data-baseweb="input"]:focus-within {
+    border-color: #2563EB !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+}
+
+div[data-baseweb="input"] input {
+    color: #F8FAFC !important;
+    font-family: var(--font-sans) !important;
+}
+
+div[data-baseweb="select"] > div {
+    background-color: #141824 !important;
+    border: 1px solid #232B3E !important;
+    border-radius: var(--radius-md) !important;
+    color: #F8FAFC !important;
+}
+
+/* Tabs */
+div[data-baseweb="tab-list"] {
+    border-bottom: 1px solid var(--border) !important;
+    gap: 8px !important;
+}
+
+button[data-baseweb="tab"] {
+    color: var(--text-muted) !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    border-bottom-width: 2px !important;
+}
+
+button[data-baseweb="tab"][aria-selected="true"] {
+    color: #60A5FA !important;
+    border-bottom-color: #2563EB !important;
+}
+
+/* Expander */
+div[data-testid="stExpander"] {
+    background-color: #131722 !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-md) !important;
+}
+
+div[data-testid="stExpander"] summary {
+    color: #CBD5E1 !important;
+    font-weight: 600 !important;
+}
+
+/* Alerts / Info Boxes */
+div[data-testid="stAlert"] {
+    background-color: #151922 !important;
+    border: 1px solid #232B3E !important;
+    border-radius: var(--radius-md) !important;
+    color: #F1F5F9 !important;
 }
 
 /* =============================================================================
@@ -421,7 +549,7 @@ div.stButton > button[type="primary"]:hover {
 
 .badge-accent {
     background: var(--accent-soft);
-    color: var(--accent);
+    color: #60A5FA;
     border: 1px solid var(--accent-border);
 }
 
@@ -455,11 +583,11 @@ div.stButton > button[type="primary"]:hover {
     flex-wrap: wrap;
     gap: 10px;
     margin-top: 14px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
 }
 
 .status-pill-item {
-    background: rgba(255, 255, 255, 0.9);
+    background: #141824;
     border: 1px solid var(--border);
     border-radius: var(--radius-pill);
     padding: 6px 14px;
@@ -472,12 +600,12 @@ div.stButton > button[type="primary"]:hover {
 }
 
 .status-pill-item strong {
-    color: var(--text-main);
+    color: #F1F5F9;
 }
 
 /* Shimmer Loading */
 .skeleton-shimmer {
-    background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+    background: linear-gradient(90deg, #182030 25%, #232B3E 50%, #182030 75%);
     background-size: 200% 100%;
     animation: skeletonShimmer 1.5s infinite;
     border-radius: 6px;
@@ -488,25 +616,38 @@ div.stButton > button[type="primary"]:hover {
     100% { background-position: -200% 0; }
 }
 
-/* Sidebar styling */
+/* =============================================================================
+   10. SIDEBAR STYLING (CALLEY DARK SAAS AESTHETIC)
+   ============================================================================= */
 [data-testid="stSidebar"] {
-    background-color: var(--surface) !important;
+    background-color: #0B0E14 !important;
     border-right: 1px solid var(--border) !important;
 }
 
 [data-testid="stSidebar"] .block-container {
-    background: var(--surface) !important;
+    background: #0B0E14 !important;
     border: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    padding: 24px 18px !important;
+    padding: 20px 16px !important;
 }
 
-/* Responsive Hide for Connector Arrows below 900px */
-@media (max-width: 900px) {
-    .connector-arrow {
-        display: none !important;
-    }
+/* Support Online Indicator */
+.online-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #10B981;
+}
+
+.online-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #10B981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
 }
 
 /* Accessibility: Respect Reduced Motion */

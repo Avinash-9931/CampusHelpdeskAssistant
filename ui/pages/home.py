@@ -29,11 +29,7 @@ from ui.assets_svg import (
 
 
 def render_home_page():
-    """Renders the Dribbble SaaS style Home page view."""
-    # Persistent Demo Warning Banner if active
-    if st.session_state.get("demo_active", False):
-        st.markdown(render_demo_banner(), unsafe_allow_html=True)
-
+    """Renders the Calley dark SaaS style Home page view."""
     # =========================================================================
     # 1. HERO SECTION WITH FLOATING CARDS & DASHED SELECTION HEADLINE
     # =========================================================================
@@ -201,71 +197,9 @@ def render_home_page():
     retriever = st.session_state.get("retriever")
     if retriever:
         stats = retriever.get_stats()
-        ai_engine = st.session_state.get("ai_engine")
-        is_ai_ready = ai_engine.is_available() if ai_engine else False
-        ai_mode = f"Gemini ({settings.GEMINI_MODEL})" if is_ai_ready else "Fallback Mode (Direct Evidence)"
         status_html = render_status_strip(
             doc_count=stats["document_count"],
-            chunk_count=stats["chunk_count"],
-            ai_mode=ai_mode,
-            retrieval_method=retriever.active_method()
+            chunk_count=stats["chunk_count"]
         )
         st.markdown(status_html, unsafe_allow_html=True)
 
-    # =========================================================================
-    # 4. RAG ARCHITECTURE PILLARS
-    # =========================================================================
-    st.markdown("<h3 style='margin-top:28px; margin-bottom:16px;'>How the Grounded Architecture Operates</h3>", unsafe_allow_html=True)
-    p1, p2, p3, p4 = st.columns(4, gap="medium")
-    
-    with p1:
-        st.markdown("""
-        <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:14px; padding:16px; height:100%; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-            <div style="font-size:11px; font-weight:700; color:#2F5BEA; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
-                01 · Ingestion
-            </div>
-            <div style="font-weight:700; font-size:14.5px; color:#0F172A; margin-bottom:6px;">High-Fidelity PDF Parse</div>
-            <div style="font-size:12.5px; color:#64748B; line-height:1.5;">
-                PyMuPDF extracts clean text pages, chunked into 350-word bounded segments with exact page metadata.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with p2:
-        st.markdown("""
-        <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:14px; padding:16px; height:100%; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-            <div style="font-size:11px; font-weight:700; color:#2F5BEA; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
-                02 · Dual-Tier Search
-            </div>
-            <div style="font-weight:700; font-size:14.5px; color:#0F172A; margin-bottom:6px;">Semantic + Lexical</div>
-            <div style="font-size:12.5px; color:#64748B; line-height:1.5;">
-                Combines dense vector similarity with offline BM25-grade TF-IDF lexical retrieval with relevance thresholding.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with p3:
-        st.markdown("""
-        <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:14px; padding:16px; height:100%; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-            <div style="font-size:11px; font-weight:700; color:#2F5BEA; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
-                03 · Grounded Synthesis
-            </div>
-            <div style="font-weight:700; font-size:14.5px; color:#0F172A; margin-bottom:6px;">Zero Hallucination</div>
-            <div style="font-size:12.5px; color:#64748B; line-height:1.5;">
-                Gemini answers are synthesized strictly from retrieved passages with verbatim page-level source citations.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with p4:
-        st.markdown("""
-        <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:14px; padding:16px; height:100%; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-            <div style="font-size:11px; font-weight:700; color:#2F5BEA; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
-                04 · Verbatim Guard
-            </div>
-            <div style="font-weight:700; font-size:14.5px; color:#0F172A; margin-bottom:6px;">Refusal & Referrals</div>
-            <div style="font-size:12.5px; color:#64748B; line-height:1.5;">
-                Queries lacking verified document facts trigger polite refusals and guide students to official department desks.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)

@@ -135,3 +135,22 @@ def init_db() -> None:
         );
         """)
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_chat_user ON user_chat_history(user_id, conversation_id);")
+
+        # 7. Seed Faculty Examiner & Guest Evaluator accounts for Course Faculty Review
+        from auth.security import hash_password
+        cursor.execute("SELECT id FROM users WHERE id = 'faculty'")
+        if not cursor.fetchone():
+            fac_hash = hash_password("faculty123")
+            cursor.execute("""
+            INSERT INTO users (id, name, email, password_hash, role, status, force_password_change)
+            VALUES ('faculty', 'Faculty Examiner', 'faculty@campus.edu', ?, 'Admin', 'active', 0)
+            """, (fac_hash,))
+
+        cursor.execute("SELECT id FROM users WHERE id = 'guest'")
+        if not cursor.fetchone():
+            guest_hash = hash_password("guest123")
+            cursor.execute("""
+            INSERT INTO users (id, name, email, password_hash, role, status, force_password_change)
+            VALUES ('guest', 'Guest Evaluator', 'guest@campus.edu', ?, 'Admin', 'active', 0)
+            """, (guest_hash,))
+

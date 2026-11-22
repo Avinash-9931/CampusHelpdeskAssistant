@@ -29,6 +29,22 @@ USERS_DB = {
         "id": "ADM-001",
         "department": "Office of Academic Affairs & Policy Helpdesk",
         "avatar": "🛡️"
+    },
+    "faculty": {
+        "password": "faculty123",
+        "role": "Admin",
+        "name": "Course Faculty / Evaluator",
+        "id": "faculty",
+        "department": "Department of Computer Science & Engineering",
+        "avatar": "🎓"
+    },
+    "guest": {
+        "password": "guest123",
+        "role": "Admin",
+        "name": "Guest Examiner",
+        "id": "guest",
+        "department": "Academic Evaluation Committee",
+        "avatar": "⚖️"
     }
 }
 

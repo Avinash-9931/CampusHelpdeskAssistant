@@ -199,38 +199,14 @@ def render_badge(label: str, kind: str = "navy", icon_name: Optional[str] = None
 
 
 def render_demo_banner() -> str:
-    """Renders a persistent amber banner when synthetic demo data is loaded, styled as a pill bar."""
-    warning_icon = render_icon("alert-triangle", size=16, color="#D97706")
-    return clean_html(f"""
-    <div class="demo-pill-banner">
-        <div style="display:flex; align-items:center; gap:8px;">
-            {warning_icon}
-            <div>
-                <strong>DEMO DATA ACTIVE:</strong> Currently using synthetic <em>Apex Metropolitan University Policy Handbook</em>. 
-                Values and fees are for testing & evaluation purposes only.
-            </div>
-        </div>
-        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#B45309; white-space:nowrap;">
-            Verification Mode
-        </div>
-    </div>
-    """)
+    """Renders a persistent banner when synthetic demo data is loaded. Returns empty string per design spec."""
+    return ""
 
 
-def render_status_strip(doc_count: int, chunk_count: int, ai_mode: str, retrieval_method: str) -> str:
-    """Renders the live status strip as small white pills under the feature strip."""
-    file_icon = render_icon("file-text", size=13, color="#2F5BEA")
-    layers_icon = render_icon("layers", size=13, color="#2F5BEA")
-    cpu_icon = render_icon("cpu", size=13, color="#2F5BEA")
-    db_icon = render_icon("database", size=13, color="#2F5BEA")
-
-    ai_badge = (
-        render_badge(ai_mode, kind="success", icon_name="sparkles")
-        if "Gemini" in ai_mode
-        else render_badge("Fallback Mode", kind="warning", icon_name="shield-check")
-    )
-
-    retrieval_badge = render_badge(retrieval_method, kind="accent", icon_name="database")
+def render_status_strip(doc_count: int, chunk_count: int, ai_mode: str = "", retrieval_method: str = "") -> str:
+    """Renders the live status strip as sleek dark pills under the feature strip."""
+    file_icon = render_icon("file-text", size=13, color="#3B82F6")
+    layers_icon = render_icon("layers", size=13, color="#3B82F6")
 
     return clean_html(f"""
     <div class="status-pill-strip">
@@ -241,14 +217,6 @@ def render_status_strip(doc_count: int, chunk_count: int, ai_mode: str, retrieva
         <div class="status-pill-item">
             {layers_icon}
             <span>Knowledge Chunks: <strong>{chunk_count} chunks</strong></span>
-        </div>
-        <div class="status-pill-item">
-            {cpu_icon}
-            <span>AI Generation Mode: {ai_badge}</span>
-        </div>
-        <div class="status-pill-item">
-            {db_icon}
-            <span>Active Retrieval Tier: {retrieval_badge}</span>
         </div>
     </div>
     """)
@@ -262,29 +230,29 @@ def render_citation_chip(filename: str, page: int, score: Optional[float] = None
     safe_fn = sanitize_text(filename)
     score_str = f" · {score:.3f}" if score is not None else ""
     return clean_html(
-        f'<span class="citation-chip" style="display:inline-flex; align-items:center; gap:5px; background:#EEF2FF; border:1px solid #C7D2FE; border-radius:6px; padding:3px 8px; font-family:\'JetBrains Mono\', monospace; font-size:11px; color:#2F5BEA;">'
-        f'{render_icon("file-text", size=11, color="#2F5BEA")} {safe_fn} (p. {page}{score_str})'
+        f'<span class="citation-chip" style="display:inline-flex; align-items:center; gap:5px; background:#1E2536; border:1px solid #25334D; border-radius:6px; padding:3px 8px; font-family:\'JetBrains Mono\', monospace; font-size:11px; color:#60A5FA;">'
+        f'{render_icon("file-text", size=11, color="#60A5FA")} {safe_fn} (p. {page}{score_str})'
         f'</span>'
     )
 
 
 def render_source_item(filename: str, page: int, snippet: str, score: Optional[float] = None) -> str:
-    """Renders an individual collapsible source citation block with dashed border."""
+    """Renders an individual collapsible source citation block with dark styling."""
     safe_fn = sanitize_text(filename)
     safe_snippet = sanitize_text(snippet)
     score_badge = render_badge(f"Relevance: {score:.3f}", kind="accent") if score is not None else ""
     return clean_html(f"""
-    <div class="source-item-card">
+    <div class="source-item-card" style="background:#141824; border:1px solid #1E2433; border-radius:10px; padding:12px 14px; margin-bottom:8px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-weight:700; color:#2F5BEA; font-family:'JetBrains Mono', monospace; font-size:12px;">
-                    {render_icon("file-text", size=13, color="#2F5BEA")} {safe_fn}
+                <span style="font-weight:700; color:#60A5FA; font-family:'JetBrains Mono', monospace; font-size:12px;">
+                    {render_icon("file-text", size=13, color="#60A5FA")} {safe_fn}
                 </span>
                 <span class="badge badge-muted">Page {page}</span>
             </div>
             <div>{score_badge}</div>
         </div>
-        <div style="font-size:12.5px; line-height:1.5; color:#475569; font-style:italic; border-left:2px solid #C7D2FE; padding-left:10px; margin-top:4px;">
+        <div style="font-size:12.5px; line-height:1.5; color:#94A3B8; font-style:italic; border-left:2px solid #2563EB; padding-left:10px; margin-top:4px;">
             "{safe_snippet}"
         </div>
     </div>
@@ -296,27 +264,27 @@ def render_source_item(filename: str, page: int, snippet: str, score: Optional[f
 # ==============================================================================
 def render_skeleton() -> str:
     """Renders a smooth shimmer skeleton placeholder during retrieval & generation."""
-    search_icon = render_icon("search", size=15, color="#2F5BEA")
+    search_icon = render_icon("search", size=15, color="#60A5FA")
     return clean_html(f"""
-    <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.04); margin-bottom:16px;">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px; color:#2F5BEA; font-weight:700; font-size:13px;">
+    <div style="background:#131722; border:1px solid #1E2433; border-radius:12px; padding:20px; box-shadow:0 4px 14px rgba(0,0,0,0.4); margin-bottom:16px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px; color:#60A5FA; font-weight:700; font-size:13px;">
             {search_icon} <span>Searching official university policy documents...</span>
         </div>
-        <div class="skeleton-box" style="height:14px; width:92%; margin-bottom:10px;"></div>
-        <div class="skeleton-box" style="height:14px; width:78%; margin-bottom:10px;"></div>
-        <div class="skeleton-box" style="height:14px; width:64%;"></div>
+        <div class="skeleton-shimmer" style="height:14px; width:92%; margin-bottom:10px;"></div>
+        <div class="skeleton-shimmer" style="height:14px; width:78%; margin-bottom:10px;"></div>
+        <div class="skeleton-shimmer" style="height:14px; width:64%;"></div>
     </div>
     """)
 
 
 def render_empty_state(title: str, message: str, icon_name: str = "help-circle") -> str:
-    """Renders a clean empty state card."""
-    icon_svg = render_icon(icon_name, size=36, color="#94A3B8")
+    """Renders a clean dark empty state card."""
+    icon_svg = render_icon(icon_name, size=36, color="#64748B")
     return clean_html(f"""
-    <div style="text-align:center; padding:40px 24px; background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-        <div style="width:48px; height:48px; margin:0 auto 12px auto; color:#94A3B8;">{icon_svg}</div>
-        <h4 style="color:#0F172A; font-size:16px; margin-bottom:6px; font-weight:700;">{title}</h4>
-        <p style="color:#64748B; font-size:13.5px; max-width:440px; margin:0 auto; line-height:1.5;">{message}</p>
+    <div style="text-align:center; padding:36px 24px; background:#131722; border:1px solid #1E2433; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,0.3); margin-bottom:16px;">
+        <div style="width:48px; height:48px; margin:0 auto 12px auto; color:#64748B;">{icon_svg}</div>
+        <h4 style="color:#F1F5F9; font-size:16px; margin-bottom:6px; font-weight:700;">{title}</h4>
+        <p style="color:#94A3B8; font-size:13.5px; max-width:440px; margin:0 auto; line-height:1.5;">{message}</p>
     </div>
     """)
 

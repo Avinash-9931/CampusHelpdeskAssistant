@@ -238,21 +238,21 @@ st.markdown('</div></div>', unsafe_allow_html=True)
 with st.sidebar:
     # User Profile Card
     user_initials = "".join([part[0] for part in curr_user.get("name", "User").split()[:2]]).upper() or "U"
-    role_badge = render_badge(curr_user.get("role", "Student"), kind="accent" if u_role == "Admin" else "secondary")
+    role_badge = render_badge(curr_user.get("role", "Student"), kind="accent" if u_role == "Admin" else "muted")
 
     st.markdown(clean_html(f"""
-    <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+    <div style="background:#131722; border:1px solid #1E2433; border-radius:12px; padding:14px 16px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.35);">
         <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-            <div style="width:40px; height:40px; border-radius:50%; background:#EEF2FF; color:#2F5BEA; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; border:1.5px solid #C7D2FE;">
+            <div style="width:38px; height:38px; border-radius:50%; background:#1E3A8A; color:#60A5FA; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; border:1px solid #2563EB;">
                 {user_initials}
             </div>
             <div>
-                <div style="font-weight:700; color:#0F172A; font-size:14px; line-height:1.2;">{curr_user.get('name', 'User')}</div>
-                <div style="font-size:11.5px; color:#64748B;">ID: <code>{curr_user.get('id', '')}</code></div>
+                <div style="font-weight:700; color:#FFFFFF; font-size:13.5px; line-height:1.2;">{curr_user.get('name', 'User')}</div>
+                <div style="font-size:11px; color:#94A3B8;">ID: <code>{curr_user.get('id', '')}</code></div>
             </div>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #F1F5F9; padding-top:8px;">
-            <span style="font-size:11px; color:#94A3B8;">Role:</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #1E2433; padding-top:8px;">
+            <div class="online-indicator"><span class="online-dot"></span> Online</div>
             {role_badge}
         </div>
     </div>
