@@ -447,6 +447,72 @@ def get_user_by_id(user_id: str) -> Optional[Dict[str, Any]]:
         return dict(row) if row else None
 
 
+def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
+    """Retrieves user profile dictionary by email (case-insensitive)."""
+    if not email:
+        return None
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+        SELECT id, name, email, role, status, force_password_change, created_at, last_login_at
+        FROM users WHERE LOWER(email) = LOWER(?);
+        """, (email.strip(),))
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+
+def login_or_register_with_email(
+    email: str,
+    name: Optional[str] = None
+) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+    """
+    Authenticates a user via Google / Email OTP.
+    If user exists by email, returns their profile.
+    If user does not exist, seamlessly auto-provisions a Student account.
+    
+    Returns:
+        (success: bool, status_message: str, user_dict: Optional[dict])
+    """
+    cleaned_email = (email or "").strip().lower()
+    if not cleaned_email or "@" not in cleaned_email:
+        return False, "Please enter a valid email address.", None
+
+    user = get_user_by_email(cleaned_email)
+    if user:
+        if user["status"] != "active":
+            return False, "This account has been disabled. Please contact the administrator.", None
+        return True, "OK", user
+
+    # User does not exist yet: auto-register as Student
+    email_user_part = cleaned_email.split("@")[0]
+    base_id = "".join(c for c in email_user_part if c.isalnum() or c in ("-", "_")) or "student"
+    candidate_id = base_id
+
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        suffix = 1
+        while cursor.execute("SELECT 1 FROM users WHERE LOWER(id) = LOWER(?);", (candidate_id,)).fetchone():
+            candidate_id = f"{base_id}_{suffix}"
+            suffix += 1
+
+    display_name = (name or "").strip() or base_id.replace(".", " ").replace("_", " ").title()
+    auto_pwd = generate_random_initial_password(16)
+
+    ok, msg, _ = create_user(
+        user_id=candidate_id,
+        name=display_name,
+        email=cleaned_email,
+        role="Student",
+        password=auto_pwd,
+        force_password_change=False
+    )
+    if not ok:
+        return False, msg, None
+
+    created_user = get_user_by_email(cleaned_email)
+    return True, "Account registered", created_user
+
+
 def reset_user_password(user_id: str, new_password: str, reset_by: Optional[str] = None) -> Tuple[bool, str]:
     """Sets a user's password directly (used by admin CLI or self-service password reset)."""
     is_valid, msg = validate_password_policy(new_password)

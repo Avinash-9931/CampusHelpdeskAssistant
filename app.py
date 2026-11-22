@@ -38,7 +38,7 @@ from ui.pages.about import render_about_page
 # 1. PAGE CONFIGURATION & METADATA
 # ==============================================================================
 st.set_page_config(
-    page_title="Campus Helpdesk Assistant | Invictus",
+    page_title="Campus Helpdesk Assistant",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -103,6 +103,16 @@ def init_session_state():
 
     if "active_prompt_version" not in st.session_state:
         st.session_state.active_prompt_version = "final"
+
+    # Support explicit logout via query param
+    if st.query_params.get("logout"):
+        st.session_state.auth_user = None
+        st.session_state.session_token = None
+        st.session_state.pending_auth = None
+        st.session_state.auth_view = "login"
+        if "session_token" in st.query_params:
+            del st.query_params["session_token"]
+        del st.query_params["logout"]
 
     # Session token check for refresh persistence
     query_token = st.query_params.get("session_token")
@@ -345,7 +355,7 @@ with st.sidebar:
     st.markdown(clean_html(f"""
     <div style="font-size:11.5px; color:var(--text-muted); line-height:1.5;">
         <strong>Campus Helpdesk Assistant</strong><br>
-        SCSE4041 Prompt Engineering · Team Invictus
+        Official University Academic & Policy Portal
     </div>
     """), unsafe_allow_html=True)
 

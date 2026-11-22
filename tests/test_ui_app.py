@@ -5,6 +5,7 @@ custom top navigation, quick inquiry chips, chat input, and live status strip.
 """
 
 import pytest
+import unittest.mock as mock
 from pathlib import Path
 from streamlit.testing.v1 import AppTest
 from config import settings
@@ -34,8 +35,13 @@ def test_ui_home_page():
     assert "Knowledge Chunks" in all_md
 
 
-def test_ui_chatbot_page():
+@mock.patch("core.ai_engine.AIEngine.generate")
+def test_ui_chatbot_page(mock_generate):
     """Navigates to the AI Chatbot page, sends an inquiry, and verifies response generation."""
+    mock_generate.return_value = (
+        "Under section 1.2 of the university policy, undergraduate students must maintain "
+        "a minimum attendance of 75% across all registered courses. [university_policy_demo.pdf, p. 1]"
+    )
     at = AppTest.from_file(APP_PATH, default_timeout=30)
     at.run()
     

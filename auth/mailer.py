@@ -48,6 +48,19 @@ def send_otp_email(
     smtp_pass = settings.SMTP_APP_PASSWORD
     from_name = settings.MAIL_FROM_NAME
 
+    # Dynamic fallback: check Streamlit session or use to_email if it's a Gmail address
+    if not smtp_user:
+        try:
+            import streamlit as st
+            custom_sender = st.session_state.get("custom_smtp_user")
+            if custom_sender:
+                smtp_user = custom_sender.strip()
+        except Exception:
+            pass
+
+    if not smtp_user and to_email and to_email.strip().lower().endswith("@gmail.com"):
+        smtp_user = to_email.strip()
+
     has_smtp = bool(smtp_user and smtp_pass and smtp_host)
 
     # 1. Dev Mode Check
@@ -106,7 +119,7 @@ def send_otp_email(
         </tr>
         <tr>
           <td style="padding:20px 32px; background-color:#F8FAFC; border-top:1px solid #F1F5F9; font-size:11.5px; color:#94A3B8; text-align:center;">
-            AI-Powered Campus Helpdesk Assistant · Project C1 · SCSE4041 Team Invictus
+            Campus Helpdesk Assistant · Official University Policy & Academic Support
           </td>
         </tr>
       </table>

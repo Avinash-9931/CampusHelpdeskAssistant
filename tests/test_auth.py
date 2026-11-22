@@ -343,3 +343,49 @@ def test_email_masking():
     assert mask_email("avinash.kumar@campus.edu") == "a************@campus.edu"
     assert mask_email("admin@university.edu") == "a****@university.edu"
     assert mask_email("x@y.com") == "x***@y.com"
+
+
+# ==============================================================================
+# 7. GOOGLE EMAIL OTP & SELF-REGISTRATION TESTS
+# ==============================================================================
+def test_get_user_by_email():
+    """Verifies user retrieval by email address case-insensitively."""
+    from auth.service import get_user_by_email
+    admin_user = get_user_by_email("admin@campus.edu")
+    assert admin_user is not None
+    assert admin_user["id"] == "admin"
+    assert admin_user["role"] == "Admin"
+
+    # Case-insensitive
+    admin_upper = get_user_by_email("ADMIN@CAMPUS.EDU")
+    assert admin_upper is not None
+    assert admin_upper["id"] == "admin"
+
+    assert get_user_by_email("nonexistent_email_123@campus.edu") is None
+
+
+def test_login_or_register_with_email_flow():
+    """Verifies Google / Email OTP authentication and auto-enrollment for new students."""
+    from auth.service import login_or_register_with_email, get_user_by_email
+    import uuid
+
+    # 1. Existing user
+    ok, msg, user = login_or_register_with_email("student@campus.edu")
+    assert ok
+    assert user is not None
+    assert user["role"] == "Student"
+
+    # 2. New user auto-registration
+    unique_tag = uuid.uuid4().hex[:6]
+    new_email = f"google_test_student_{unique_tag}@gmail.com"
+    ok, msg, created = login_or_register_with_email(new_email, name="Google Test Student")
+    assert ok
+    assert created is not None
+    assert created["role"] == "Student"
+    assert created["email"] == new_email
+
+    # Subsequent call returns the existing record
+    ok2, msg2, existing = login_or_register_with_email(new_email)
+    assert ok2
+    assert existing["id"] == created["id"]
+
