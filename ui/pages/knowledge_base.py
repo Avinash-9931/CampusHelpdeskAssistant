@@ -22,6 +22,7 @@ from core.pdf_processor import (
     CorruptPDFError,
     ScannedPDFError
 )
+from auth.guards import require_role, render_access_denied_view
 from core.text_chunker import chunk_pages
 from ui.components import (
     render_icon,
@@ -50,6 +51,11 @@ def load_demo_document():
 
 def render_knowledge_base_page():
     """Renders the Knowledge Base management view."""
+    curr_user = st.session_state.get("auth_user")
+    if not require_role(curr_user, "Admin"):
+        render_access_denied_view("Knowledge Base Management")
+        return
+
     # Persistent Demo Warning Banner if active
     if st.session_state.get("demo_active", False):
         st.markdown(render_demo_banner(), unsafe_allow_html=True)
@@ -214,7 +220,7 @@ def render_knowledge_base_page():
                 <div class="custom-card" style="padding:16px 20px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
                     <div>
                         <div style="font-weight:700; color:var(--navy); font-size:14.5px; display:flex; align-items:center; gap:8px;">
-                            {render_icon("file-text", size=16, color="#2563EB")} {fname}
+                            {render_icon("file-text", size=16, color="#2F5BEA")} {fname}
                         </div>
                         <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
                             Uploaded: {uploaded_at} · Size: {size_kb:.1f} KB

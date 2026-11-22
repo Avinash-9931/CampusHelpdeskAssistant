@@ -19,6 +19,8 @@ data/uploads/*
 !data/uploads/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
+data/*.db
+data/auth.db
 
 # Operating system artifacts
 .DS_Store

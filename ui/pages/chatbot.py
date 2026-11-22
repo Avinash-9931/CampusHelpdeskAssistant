@@ -7,11 +7,14 @@ collapsible source citation drawers, mode badges, and empty states.
 
 import time
 import html
+import json
+import re
 import textwrap
 from datetime import datetime
 import streamlit as st
 from config import settings
 from core.chatbot import ChatResult
+from auth.service import save_chat_turn
 from ui.components import (
     render_icon,
     render_badge,
@@ -19,8 +22,10 @@ from ui.components import (
     render_skeleton,
     render_empty_state,
     render_fallback_notice_banner,
-    render_demo_banner
+    render_demo_banner,
+    clean_html
 )
+from ui.assets_svg import LOGO_GLYPH_SVG
 
 
 def _simulate_stream(text: str):
@@ -54,8 +59,9 @@ def render_chatbot_page():
 
     # 1. Quick-Question Chips
     st.markdown(
-        "<div style='font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;'>"
-        "Quick Inquiries:"
+        "<div style='font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;'>"
+        "<span>⚡ Quick Inquiries (Click to ask instantly):</span>"
+        "<span style='font-size:11px; font-weight:500; text-transform:none; color:var(--accent);'>Or type manually in the input bar below ↓</span>"
         "</div>",
         unsafe_allow_html=True
     )
@@ -116,22 +122,22 @@ def render_chatbot_page():
             timestamp = msg.get("timestamp", datetime.now().strftime("%I:%M %p"))
 
             if role == "user":
-                # User Message Bubble (HTML escaped for XSS safety)
+                # User Message Bubble (Accent Blue)
                 safe_user_content = html.escape(content)
-                user_html = textwrap.dedent(f"""
-                <div class="chat-message-row user">
-                    <div class="chat-bubble-user">
-                        <div style="font-size:11px; font-weight:700; color:#93C5FD; margin-bottom:4px; display:flex; justify-content:space-between;">
+                user_html = clean_html(f"""
+                <div class="chat-message-row user" style="display:flex; justify-content:flex-end; margin-bottom:18px;">
+                    <div class="chat-bubble-user" style="background:#2F5BEA; color:#FFFFFF; border-radius:18px 18px 4px 18px; padding:14px 18px; max-width:80%; box-shadow:0 4px 18px rgba(47,91,234,0.22);">
+                        <div style="font-size:11px; font-weight:700; color:#DBEAFE; margin-bottom:6px; display:flex; justify-content:space-between; gap:16px;">
                             <span>Student Inquiry</span>
-                            <span>{timestamp}</span>
+                            <span style="opacity:0.85;">{timestamp}</span>
                         </div>
-                        <div style="font-size:14px; line-height:1.5;">{safe_user_content}</div>
+                        <div style="font-size:14.5px; line-height:1.55; color:#FFFFFF;">{safe_user_content}</div>
                     </div>
                 </div>
-                """).strip()
+                """)
                 st.markdown(user_html, unsafe_allow_html=True)
             else:
-                # Assistant Message Bubble
+                # Assistant Message Bubble (Crisp White Card with subtle border)
                 mode = msg.get("mode", "gemini")
                 method = msg.get("retrieval_method", "TF-IDF lexical")
                 citations = msg.get("citations", [])
@@ -154,33 +160,57 @@ def render_chatbot_page():
 
                 method_badge = render_badge(method, kind="accent")
 
-                # Fallback notice banner if mode is fallback
-                fallback_banner = render_fallback_notice_banner(error_msg=error_info) if mode == "fallback" else ""
-
-                header_html = textwrap.dedent(f"""
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid #E2E8F0;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <div style="width:26px; height:26px; background:#0B1F3A; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#FFFFFF;">
-                            {render_icon("graduation-cap", size=14)}
+                header_html = clean_html(f"""
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid #F1F5F9;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        {LOGO_GLYPH_SVG}
+                        <div>
+                            <div style="font-weight:800; color:#0D0F14; font-size:14px; line-height:1.2;">Campus Helpdesk Assistant</div>
+                            <div style="font-size:11px; color:#667085;">Official Policy Assistant</div>
                         </div>
-                        <span style="font-weight:700; color:#0B1F3A; font-size:13.5px;">Campus Helpdesk Assistant</span>
                         {mode_badge}
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
                         {method_badge}
-                        <span style="font-size:11.5px; color:#64748B;">{timestamp}</span>
+                        <span style="font-size:11.5px; color:#94A3B8;">{timestamp}</span>
                     </div>
                 </div>
-                {fallback_banner}
-                """).strip()
+                """)
 
                 with st.container(border=True):
                     st.markdown(header_html, unsafe_allow_html=True)
-                    st.markdown(content)
+
+                    # In fallback mode, render a clean native info banner
+                    if mode == "fallback":
+                        fallback_desc = f" ({error_info})" if error_info else ""
+                        st.info(
+                            f"ℹ️ **Direct Evidence Mode Active:** Generative AI is currently operating in fallback mode{fallback_desc}. "
+                            f"Showing verified verbatim excerpts retrieved directly from official policy files."
+                        )
+
+                    # Clean any legacy HTML wrappers from earlier sessions
+                    clean_content = content
+                    if "<div" in clean_content or "<svg" in clean_content:
+                        clean_content = re.sub(r'<[^>]+>', '', clean_content).strip()
+
+                    # In fallback mode with a banner, streamline body so direct excerpts are immediately legible
+                    if mode == "fallback":
+                        lines = clean_content.splitlines()
+                        filtered_lines = []
+                        skip_header = True
+                        for line in lines:
+                            if skip_header and ("AI generation" in line or "Showing" in line or not line.strip()):
+                                continue
+                            skip_header = False
+                            filtered_lines.append(line)
+                        if filtered_lines:
+                            clean_content = "\n".join(filtered_lines)
+
+                    st.markdown(clean_content)
 
                     # Collapsible Source Cards under Answer
                     if citations:
-                        with st.expander(f"📌 Verified Citations & Source Evidence ({len(citations)})", expanded=False):
+                        with st.expander(f"📌 Verified Citations & Policy Sources ({len(citations)})", expanded=False):
                             for cite in citations:
                                 fname = cite.get("filename", "")
                                 page = cite.get("page", 1)
@@ -191,8 +221,37 @@ def render_chatbot_page():
                                     unsafe_allow_html=True
                                 )
 
+    # Quick Inquiries chips during ongoing conversation (so they remain accessible)
+    if chat_history:
+        st.markdown(
+            "<div style='margin-top:20px; margin-bottom:8px; font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.03em; display:flex; justify-content:space-between; align-items:center;'>"
+            "<span>⚡ Quick Follow-up Inquiries:</span>"
+            "<span style='font-size:11px; font-weight:500; text-transform:none; color:var(--accent);'>Or type a question manually below ↓</span>"
+            "</div>",
+            unsafe_allow_html=True
+        )
+        b_cols1 = st.columns(3, gap="small")
+        b_cols2 = st.columns(3, gap="small")
+        for idx, (col, q_text) in enumerate(zip(b_cols1 + b_cols2, chip_queries)):
+            with col:
+                btn_label = q_text
+                if "attendance" in q_text.lower():
+                    btn_label = "Attendance Requirement"
+                elif "examination" in q_text.lower():
+                    btn_label = "Examination Admit Card"
+                elif "library" in q_text.lower():
+                    btn_label = "Library Borrowing & Timings"
+                elif "fee" in q_text.lower():
+                    btn_label = "Fee Payment & Penalties"
+                elif "hostel" in q_text.lower():
+                    btn_label = "Hostel Curfew Regulations"
+                elif "registration" in q_text.lower():
+                    btn_label = "Course Registration Schedule"
+                if st.button(f"📌 {btn_label}", key=f"bottom_chip_btn_{idx}", use_container_width=True):
+                    pending_query = q_text
+
     # 3. Chat Input Box (Sticky Bottom)
-    chat_input_val = st.chat_input("Type your question here (e.g. 'What is the attendance rule?')")
+    chat_input_val = st.chat_input("💬 Type your question manually and press Enter (or click a Quick Inquiry above)...")
     active_query = pending_query or chat_input_val
 
     if active_query:
@@ -266,5 +325,27 @@ def render_chatbot_page():
             "error": result.error,
             "timestamp": datetime.now().strftime("%I:%M %p")
         })
+
+        # Persist conversation turn into SQLite user_chat_history
+        curr_user = st.session_state.get("auth_user")
+        if curr_user and curr_user.get("id"):
+            u_id = curr_user["id"]
+            save_chat_turn(
+                user_id=u_id,
+                conversation_id="default_conv",
+                role="user",
+                content=active_query
+            )
+            save_chat_turn(
+                user_id=u_id,
+                conversation_id="default_conv",
+                role="assistant",
+                content=formatted_answer,
+                metadata_json=json.dumps({
+                    "mode": result.mode,
+                    "retrieval_method": result.retrieval_method,
+                    "citations": [s.to_dict() for s in result.sources]
+                })
+            )
 
         st.rerun()

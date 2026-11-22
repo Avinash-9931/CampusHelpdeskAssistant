@@ -360,9 +360,10 @@ class ChatbotController:
                 )
                 excerpts = []
                 for idx, rc in enumerate(retrieved_chunks, 1):
+                    clean_text = "\n> ".join(line.strip() for line in rc.chunk.text.strip().splitlines() if line.strip())
                     excerpts.append(
                         f"📄 **Passage {idx}** (From `{rc.chunk.filename}`, Page {rc.chunk.page}):\n"
-                        f"> {rc.chunk.text}"
+                        f"> {clean_text}"
                     )
                 return ChatResult(
                     answer=fallback_header + "\n\n".join(excerpts),
@@ -381,9 +382,10 @@ class ChatbotController:
             )
             excerpts = []
             for idx, rc in enumerate(retrieved_chunks, 1):
+                clean_text = "\n> ".join(line.strip() for line in rc.chunk.text.strip().splitlines() if line.strip())
                 excerpts.append(
                     f"📄 **Excerpt {idx}** — *{rc.chunk.filename}* (Page {rc.chunk.page}):\n"
-                    f"> \"{rc.chunk.text}\""
+                    f"> {clean_text}"
                 )
             evidence_body = fallback_header + "\n\n".join(excerpts)
             return ChatResult(

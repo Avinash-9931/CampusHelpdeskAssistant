@@ -16,6 +16,7 @@ from core.pdf_processor import (
     ScannedPDFError
 )
 from tests.test_pdf_processor import create_minimal_pdf_bytes
+from auth.guards import require_role, render_access_denied_view
 from ui.components import (
     render_icon,
     render_badge,
@@ -108,6 +109,11 @@ def _evaluate_single_case(row: pd.Series, prompt_version: str = "final") -> tupl
 
 def render_evaluation_page():
     """Renders the Test / Evaluation page view."""
+    curr_user = st.session_state.get("auth_user")
+    if not require_role(curr_user, "Admin"):
+        render_access_denied_view("Empirical Evaluation & Test Suite")
+        return
+
     # Persistent Demo Warning Banner if active
     if st.session_state.get("demo_active", False):
         st.markdown(render_demo_banner(), unsafe_allow_html=True)

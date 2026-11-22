@@ -70,7 +70,7 @@ def render_about_page():
             <div class="custom-card fade-up" style="margin-bottom:14px; padding:16px 18px;">
                 <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
                     <div style="width:32px; height:32px; background:var(--accent-soft); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--accent);">
-                        {render_icon("graduation-cap", size=16, color="#2563EB")}
+                        {render_icon("graduation-cap", size=16, color="#2F5BEA")}
                     </div>
                     <div>
                         <div style="font-weight:700; color:var(--navy); font-size:14px; line-height:1.2;">
@@ -95,7 +95,7 @@ def render_about_page():
         st.markdown(f"""
         <div class="custom-card fade-up" style="height:100%;">
             <div style="font-weight:700; color:var(--navy); font-size:15px; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
-                {render_icon("cpu", size=16, color="#2563EB")} System Infrastructure
+                {render_icon("cpu", size=16, color="#2F5BEA")} System Infrastructure
             </div>
             <ul style="font-size:13px; line-height:1.7; color:#334155; padding-left:18px; margin:0;">
                 <li><strong>Runtime Environment:</strong> Python 3.10+ (Verified on Python 3.12)</li>
@@ -111,7 +111,7 @@ def render_about_page():
         st.markdown(f"""
         <div class="custom-card fade-up" style="height:100%;">
             <div style="font-weight:700; color:var(--navy); font-size:15px; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
-                {render_icon("shield-check", size=16, color="#2563EB")} Groundedness & Security Controls
+                {render_icon("shield-check", size=16, color="#2F5BEA")} Groundedness & Security Controls
             </div>
             <ul style="font-size:13px; line-height:1.7; color:#334155; padding-left:18px; margin:0;">
                 <li><strong>Relevance Gating:</strong> Lexical similarity threshold (min score 0.13) terminates out-of-domain queries without invoking LLM</li>
@@ -141,7 +141,7 @@ def render_about_page():
     st.markdown(f"""
     <div class="custom-card fade-up" style="margin-bottom:20px;">
         <div style="font-weight:700; color:var(--navy); font-size:14px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-            {render_icon("terminal", size=15, color="#2563EB")} Live Diagnostic Health Overview
+            {render_icon("terminal", size=15, color="#2F5BEA")} Live Diagnostic Health Overview
         </div>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
             <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:12px;">
@@ -162,7 +162,7 @@ def render_about_page():
             </div>
             <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:12px;">
                 <div style="font-size:11.5px; color:#64748B; font-weight:600; text-transform:uppercase;">Active Retrieval Tier</div>
-                <div style="font-size:13px; font-weight:700; color:#2563EB; margin-top:2px;">
+                <div style="font-size:13px; font-weight:700; color:#2F5BEA; margin-top:2px;">
                     {active_method}
                 </div>
             </div>
@@ -206,7 +206,7 @@ def render_about_page():
         st.markdown(f"""
         <div class="custom-card fade-up" style="height:100%;">
             <div style="font-weight:700; color:var(--navy); font-size:14px; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
-                {render_icon("database", size=15, color="#2563EB")} Lexical Synonymity
+                {render_icon("database", size=15, color="#2F5BEA")} Lexical Synonymity
             </div>
             <div style="font-size:12.5px; color:var(--text-muted); line-height:1.5;">
                 In default Fallback Mode, TF-IDF retrieval depends on keyword matching and morphological normalization. 

@@ -35,6 +35,19 @@ for directory in [DATA_DIR, UPLOADS_DIR, PROCESSED_DIR, DEMO_DIR, PROMPTS_DIR, A
 KNOWLEDGE_BASE_FILE = PROCESSED_DIR / "knowledge_base.json"
 EMBEDDINGS_CACHE_FILE = PROCESSED_DIR / "embeddings_cache.npy"
 TEST_CASES_FILE = EVALUATION_DIR / "test_cases.csv"
+AUTH_DB_PATH = DATA_DIR / "auth.db"
+
+# Authentication, Session & SMTP Configuration
+AUTH_SECRET_KEY = os.getenv("AUTH_SECRET_KEY", "campus-helpdesk-default-dev-secret-key-32b").strip()
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com").strip()
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "").strip()
+SMTP_APP_PASSWORD = os.getenv("SMTP_APP_PASSWORD", "").strip()
+MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "Campus Helpdesk Security").strip()
+OTP_TTL_SECONDS = int(os.getenv("OTP_TTL_SECONDS", "300"))
+SESSION_TTL_MINUTES = int(os.getenv("SESSION_TTL_MINUTES", "480"))
+SESSION_IDLE_TIMEOUT_MINUTES = int(os.getenv("SESSION_IDLE_TIMEOUT_MINUTES", "30"))
+DEV_MODE = os.getenv("DEV_MODE", "true").strip().lower() in ("true", "1", "yes")
 
 # Model & API settings
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
@@ -72,7 +85,7 @@ def has_api_key() -> bool:
 # Metadata & Attribution
 PROJECT_METADATA = {
     "title": "AI-Powered Campus Helpdesk Assistant",
-    "problem_statement": "C1 | Course: SCSE4041 – Prompt Engineering | Milestone 2",
+    "problem_statement": "C1 | Course: SCSE4041 – Prompt Engineering",
     "team": "Invictus",
     "team_id": "PE-B01-15",
     "members": [
