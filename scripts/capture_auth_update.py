@@ -1,5 +1,5 @@
 """
-Capture screenshots of the new Google Email OTP, Account Creation flows, Top Nav Logout, and Clean UI.
+Capture screenshots of all login tabs including Forgot Password.
 """
 
 import time
@@ -12,7 +12,6 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from playwright.sync_api import sync_playwright
 from auth.db import get_db_connection
-from auth.session import create_user_session
 
 SCREENSHOTS_DIR = PROJECT_ROOT / "docs" / "screenshots"
 SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -43,50 +42,25 @@ def run():
         print("Capturing 00_login_page_google.png...")
         st_tabs.nth(0).click()
         time.sleep(1)
-        p_google = SCREENSHOTS_DIR / "00_login_page_google.png"
-        page.screenshot(path=str(p_google), full_page=True)
-        page.screenshot(path=str(SCREENSHOTS_DIR / "00_login_page.png"), full_page=True)
+        page.screenshot(path=str(SCREENSHOTS_DIR / "00_login_page_google.png"), full_page=True)
 
         # Tab 1: Student / Staff ID
         print("Capturing 00_login_page_id.png...")
         st_tabs.nth(1).click()
         time.sleep(1)
-        p_id = SCREENSHOTS_DIR / "00_login_page_id.png"
-        page.screenshot(path=str(p_id), full_page=True)
+        page.screenshot(path=str(SCREENSHOTS_DIR / "00_login_page_id.png"), full_page=True)
 
         # Tab 2: Create Account
         print("Capturing 00_login_page_create.png...")
         st_tabs.nth(2).click()
         time.sleep(1)
-        p_create = SCREENSHOTS_DIR / "00_login_page_create.png"
-        page.screenshot(path=str(p_create), full_page=True)
+        page.screenshot(path=str(SCREENSHOTS_DIR / "00_login_page_create.png"), full_page=True)
 
-        # Now authenticate with a valid session to capture Home and Top Nav Logout button
-        print("Creating authenticated session for Admin...")
-        admin_session = create_user_session("admin", ip_address="127.0.0.1")
-
-        print("Navigating to Home with session token...")
-        page.goto(f"http://localhost:8501/?session_token={admin_session}&page=Home", wait_until="networkidle")
-        time.sleep(3)
-
-        print("Capturing 01_home_page.png showing top nav with Log Out button...")
-        p_home = SCREENSHOTS_DIR / "01_home_page.png"
-        page.screenshot(path=str(p_home), full_page=True)
-
-        print("Navigating to AI Chatbot page...")
-        page.click("button:has-text('AI Chatbot')")
-        time.sleep(3)
-        p_chat = SCREENSHOTS_DIR / "02_chatbot_with_sources.png"
-        page.screenshot(path=str(p_chat), full_page=True)
-
-        # Now test clicking the Log Out button in the top navigation bar!
-        print("Clicking top navigation Log Out button...")
-        logout_btn = page.locator("button:has-text('Log Out')").first
-        if logout_btn.count() > 0:
-            logout_btn.click()
-            time.sleep(3)
-            print("Successfully logged out! Returned to Login Portal.")
-            page.screenshot(path=str(SCREENSHOTS_DIR / "00_after_logout.png"), full_page=True)
+        # Tab 3: Forgot Password
+        print("Capturing 00_login_page_forgot.png...")
+        st_tabs.nth(3).click()
+        time.sleep(1)
+        page.screenshot(path=str(SCREENSHOTS_DIR / "00_login_page_forgot.png"), full_page=True)
 
         browser.close()
 

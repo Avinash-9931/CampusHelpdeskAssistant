@@ -389,3 +389,50 @@ def test_login_or_register_with_email_flow():
     assert ok2
     assert existing["id"] == created["id"]
 
+
+def test_forgot_password_otp_reset_flow():
+    """Verifies complete forgot password recovery: lookup, OTP issuance, verify, and new password login."""
+    from auth.service import (
+        create_user,
+        get_user_by_email,
+        get_user_by_id,
+        reset_user_password,
+        authenticate_credentials
+    )
+    from auth.otp import create_otp, verify_otp
+    import uuid
+
+    # Create temporary student
+    uid = f"reset_test_{uuid.uuid4().hex[:6]}"
+    u_email = f"{uid}@bennett.edu.in"
+    ok, msg, _ = create_user(user_id=uid, name="Reset Test Student", email=u_email, role="Student", password="OldPassword123")
+    assert ok
+
+    # 1. Lookup by campus email
+    user = get_user_by_email(u_email)
+    assert user is not None
+    assert user["id"] == uid
+
+    # 2. Issue OTP for password reset
+    otp_ok, otp_code, _ = create_otp(uid)
+    assert otp_ok
+    assert len(otp_code) == 6
+
+    # 3. Verify OTP
+    v_ok, v_msg = verify_otp(uid, otp_code)
+    assert v_ok
+
+    # 4. Update password
+    new_pwd = "BrandNewPassword2026"
+    r_ok, r_msg = reset_user_password(uid, new_pwd)
+    assert r_ok
+
+    # 5. Verify authentication succeeds with new password and fails with old
+    old_ok, _, _ = authenticate_credentials(uid, "OldPassword123")
+    assert not old_ok
+
+    new_ok, _, authed_user = authenticate_credentials(uid, new_pwd)
+    assert new_ok
+    assert authed_user["id"] == uid
+
+

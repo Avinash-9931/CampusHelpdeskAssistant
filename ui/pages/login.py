@@ -3,7 +3,8 @@ Login screen module for Campus Helpdesk Assistant.
 Implements:
 1. Google / Email One-Time Passcode (OTP) passwordless sign-in with auto student enrollment.
 2. Institutional credentials authentication (Roll No / ID + Password) with rate-limit lockout.
-3. Student self-service account registration with instant OTP email verification.
+3. Student self-service account registration with instant OTP email verification to any campus email (@bennett.edu.in).
+4. Self-service Forgot Password flow with 6-digit Email OTP verification and password reset.
 """
 
 import time
@@ -14,17 +15,20 @@ from auth.service import (
     check_account_lockout,
     create_user,
     login_or_register_with_email,
-    get_user_by_email
+    get_user_by_email,
+    get_user_by_id,
+    reset_user_password
 )
 from auth.security import validate_password_policy
-from auth.otp import create_otp
+from auth.otp import create_otp, verify_otp
+from auth.session import create_session
 from auth.mailer import send_otp_email, mask_email
 from ui.components import clean_html, render_icon
 from ui.assets_svg import LOGO_FULL_SVG, LOGO_GLYPH_SVG, GOOGLE_ICON_SVG
 
 
 def render_login_page():
-    """Renders the FAANG-grade unified sign-in & registration portal."""
+    """Renders the FAANG-grade unified sign-in, registration, and password recovery portal."""
     st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
     
     col_left, col_card, col_right = st.columns([1, 1.45, 1])
@@ -34,15 +38,16 @@ def render_login_page():
         <div style="text-align:center; margin-bottom:20px;">
             <div style="display:inline-block; margin-bottom:10px;">{LOGO_GLYPH_SVG}</div>
             <h2 style="font-size:24px; font-weight:700; color:#0F172A; margin:0 0 6px 0; letter-spacing:-0.02em;">Campus Helpdesk Portal</h2>
-            <p style="font-size:13.5px; color:#64748B; margin:0;">Sign in or create your student account to access AI assistance</p>
+            <p style="font-size:13.5px; color:#64748B; margin:0;">Sign in, register, or recover your student account to access AI assistance</p>
         </div>
         """, unsafe_allow_html=True)
 
         with st.container(border=True):
-            tab_google, tab_id, tab_create = st.tabs([
+            tab_google, tab_id, tab_create, tab_forgot = st.tabs([
                 "🔑 Google / Email OTP",
                 "🎓 Student / Staff ID",
-                "✨ Create Account"
+                "✨ Create Account",
+                "🔄 Forgot Password"
             ])
 
             # ==================================================================
@@ -53,15 +58,15 @@ def render_login_page():
                 <div style="display:flex; align-items:center; gap:9px; margin:8px 0 14px 0; padding:10px 14px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px;">
                     {GOOGLE_ICON_SVG}
                     <div style="font-size:13px; color:#334155; line-height:1.4;">
-                        <strong>Fast Passwordless Access:</strong> Enter your Google (@gmail.com) or campus email to receive an instant 6-digit login code.
+                        <strong>Fast Passwordless Access:</strong> Enter your campus (@bennett.edu.in) or Google email to receive an instant 6-digit login code.
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
                 with st.form("google_email_otp_form", clear_on_submit=False):
                     email_input = st.text_input(
-                        "Google / Campus Email Address",
-                        placeholder="e.g. yourname@gmail.com",
+                        "Campus (@bennett.edu.in) or Google Email",
+                        placeholder="e.g. s24cseu0709@bennett.edu.in or yourname@gmail.com",
                         key="login_google_email"
                     )
 
@@ -177,6 +182,10 @@ def render_login_page():
                                 st.session_state.auth_view = "otp"
                                 st.rerun()
 
+                st.markdown("<div style='text-align:right; margin-top:6px;'>", unsafe_allow_html=True)
+                st.caption("Forgot your password? Switch to the **🔄 Forgot Password** tab to reset it via Email OTP.")
+                st.markdown("</div>", unsafe_allow_html=True)
+
             # ==================================================================
             # TAB 3: CREATE NEW ACCOUNT (SELF-REGISTRATION)
             # ==================================================================
@@ -199,8 +208,8 @@ def render_login_page():
                         key="reg_id_input"
                     )
                     reg_email = st.text_input(
-                        "Email Address (Gmail or University)",
-                        placeholder="e.g. avinash@gmail.com",
+                        "Email Address (e.g. @bennett.edu.in or @gmail.com)",
+                        placeholder="e.g. s24cseu0709@bennett.edu.in",
                         key="reg_email_input"
                     )
                     reg_pwd = st.text_input(
@@ -278,6 +287,162 @@ def render_login_page():
                                         }
                                         st.session_state.auth_view = "otp"
                                         st.rerun()
+
+            # ==================================================================
+            # TAB 4: FORGOT PASSWORD (OTP RESET)
+            # ==================================================================
+            with tab_forgot:
+                forgot_ctx = st.session_state.get("forgot_context")
+                if not forgot_ctx:
+                    st.markdown("""
+                    <div style="font-size:13px; color:#475569; margin:8px 0 14px 0; line-height:1.5;">
+                        Forgot your password? Enter your <strong>User ID / Roll Number</strong> or <strong>Campus Email</strong> (e.g. <code>@bennett.edu.in</code>). We will dispatch a 6-digit OTP code to your registered email to reset your password.
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    with st.form("forgot_pwd_request_form", clear_on_submit=False):
+                        target_id_email = st.text_input(
+                            "Student Roll Number or Registered Email",
+                            placeholder="e.g. S24CSEU0709 or name@bennett.edu.in",
+                            key="forgot_target_account"
+                        )
+                        submit_req = st.form_submit_button(
+                            "Send Password Reset Code →",
+                            type="primary",
+                            use_container_width=True
+                        )
+
+                    if submit_req:
+                        cleaned_val = (target_id_email or "").strip()
+                        if not cleaned_val:
+                            st.error("Please enter your Student Roll Number or Email.")
+                        else:
+                            target_user = None
+                            if "@" in cleaned_val:
+                                target_user = get_user_by_email(cleaned_val)
+                            else:
+                                target_user = get_user_by_id(cleaned_val)
+                                if not target_user:
+                                    target_user = get_user_by_email(cleaned_val)
+
+                            if not target_user:
+                                st.error("No account found matching that Roll Number or Email. Please verify your details.")
+                            else:
+                                target_email = target_user.get("email", "")
+                                otp_ok, otp_code_or_err, retry_after = create_otp(target_user["id"])
+                                if not otp_ok:
+                                    if retry_after > 0:
+                                        st.warning(f"Please wait {retry_after}s before requesting a new code.")
+                                    else:
+                                        st.error(otp_code_or_err)
+                                else:
+                                    raw_otp = otp_code_or_err
+                                    mail_ok, mail_msg = send_otp_email(
+                                        to_email=target_email,
+                                        otp_code=raw_otp,
+                                        user_name=target_user.get("name", "Student"),
+                                        purpose="password_reset"
+                                    )
+                                    st.session_state.forgot_context = {
+                                        "user": target_user,
+                                        "email": target_email,
+                                        "masked_email": mask_email(target_email),
+                                        "mail_sent": mail_ok,
+                                        "mail_note": mail_msg
+                                    }
+                                    st.success(f"Verification code sent to {mask_email(target_email)}! Please check your inbox.")
+                                    st.rerun()
+                else:
+                    target_user = forgot_ctx["user"]
+                    masked_em = forgot_ctx["masked_email"]
+                    mail_sent = forgot_ctx.get("mail_sent", False)
+                    mail_note = forgot_ctx.get("mail_note", "")
+
+                    st.markdown(f"""
+                    <div style="font-size:13px; color:#475569; margin:8px 0 14px 0; line-height:1.5;">
+                        We sent a 6-digit password reset code to <strong>{masked_em}</strong>.
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    if not mail_sent and mail_note:
+                        st.error(f"Could not send email: {mail_note}")
+
+                    with st.form("forgot_pwd_verify_form", clear_on_submit=False):
+                        entered_code = st.text_input(
+                            "Enter 6-Digit Verification Code",
+                            max_chars=6,
+                            placeholder="123456",
+                            key="forgot_verify_code"
+                        )
+                        new_pwd = st.text_input(
+                            "New Password (min. 8 chars, letters & numbers)",
+                            type="password",
+                            placeholder="••••••••••••",
+                            key="forgot_new_pwd"
+                        )
+                        confirm_pwd = st.text_input(
+                            "Confirm New Password",
+                            type="password",
+                            placeholder="••••••••••••",
+                            key="forgot_confirm_pwd"
+                        )
+                        submit_reset = st.form_submit_button(
+                            "Reset Password & Sign In →",
+                            type="primary",
+                            use_container_width=True
+                        )
+
+                    if submit_reset:
+                        clean_code = (entered_code or "").strip()
+                        clean_pwd = new_pwd or ""
+                        clean_confirm = confirm_pwd or ""
+
+                        if len(clean_code) != 6 or not clean_code.isdigit():
+                            st.error("Please enter a valid 6-digit verification code.")
+                        elif clean_pwd != clean_confirm:
+                            st.error("New passwords do not match. Please re-enter.")
+                        else:
+                            is_valid_pwd, pwd_err = validate_password_policy(clean_pwd)
+                            if not is_valid_pwd:
+                                st.error(pwd_err)
+                            else:
+                                verify_ok, verify_msg = verify_otp(target_user["id"], clean_code)
+                                if not verify_ok:
+                                    st.error(verify_msg)
+                                else:
+                                    reset_user_password(target_user["id"], clean_pwd)
+                                    token = create_session(target_user["id"], ip_address="127.0.0.1")
+                                    st.session_state.auth_user = target_user
+                                    st.session_state.session_token = token
+                                    st.query_params["session_token"] = token
+                                    st.session_state.forgot_context = None
+                                    st.session_state.auth_view = None
+                                    st.session_state.page = "AI Chatbot"
+                                    st.success("Password successfully updated! Logging you in...")
+                                    st.rerun()
+
+                    f_c1, f_c2 = st.columns(2)
+                    with f_c1:
+                        if st.button("Resend Code", key="forgot_resend_code_btn", use_container_width=True):
+                            ok, code_or_err, retry = create_otp(target_user["id"])
+                            if ok:
+                                send_otp_email(
+                                    to_email=target_user["email"],
+                                    otp_code=code_or_err,
+                                    user_name=target_user.get("name", "Student"),
+                                    purpose="password_reset"
+                                )
+                                st.success("A fresh reset code has been sent to your email.")
+                                st.rerun()
+                            else:
+                                if retry > 0:
+                                    st.warning(f"Please wait {retry}s before requesting a new code.")
+                                else:
+                                    st.error(code_or_err)
+                    with f_c2:
+                        if st.button("← Enter Different ID", key="forgot_cancel_btn", use_container_width=True):
+                            st.session_state.forgot_context = None
+                            st.rerun()
 
         st.markdown("""
         <div style="text-align:center; margin-top:20px; font-size:12px; color:#94A3B8;">

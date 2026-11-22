@@ -44,7 +44,7 @@ def send_otp_email(
         user_name = recipient_name
     smtp_host = settings.SMTP_HOST
     smtp_port = settings.SMTP_PORT
-    smtp_user = settings.SMTP_USER
+    smtp_user = settings.SMTP_USER or "avinashsingh5493@gmail.com"
     smtp_pass = settings.SMTP_APP_PASSWORD
     from_name = settings.MAIL_FROM_NAME
 
